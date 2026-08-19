@@ -189,6 +189,7 @@
     </div>
 
     <h4 class="subsection-title" id="pendingTitle" style="display:none;">Pending invites — waiting on the client to redeem their code</h4>
+    <p class="empty-note" id="pendingHint" style="display:none; text-align:left; padding: 0 0 12px;">Give the client their code below plus this link: <strong>own-the-outcome-site.netlify.app/redeem-portal.html</strong>. Once they redeem it, they'll move into the Clients list automatically.</p>
     <div id="pendingList"></div>
 
     <h4 class="subsection-title">Clients</h4>
@@ -299,7 +300,6 @@
       document.getElementById('nc-price').value = 99;
       document.getElementById('nc-active').checked = false;
       await loadPending();
-      alert('Company code for ' + business + ': ' + code + '\n\nGive this to the client along with the link to own-the-outcome-site.netlify.app/redeem-portal.html — they\'ll enter the code, set their own email/password, and their portal will appear here automatically once they finish.');
     });
 
     function pendingCardHTML(p) {
@@ -316,8 +316,10 @@
       const { data } = await sb.from('pending_clients').select('*').order('created_at', { ascending: false });
       const list = document.getElementById('pendingList');
       const title = document.getElementById('pendingTitle');
-      if (!data || !data.length) { list.innerHTML = ''; title.style.display = 'none'; return; }
+      const hint = document.getElementById('pendingHint');
+      if (!data || !data.length) { list.innerHTML = ''; title.style.display = 'none'; hint.style.display = 'none'; return; }
       title.style.display = 'block';
+      hint.style.display = 'block';
       list.innerHTML = data.map(pendingCardHTML).join('');
     }
 
