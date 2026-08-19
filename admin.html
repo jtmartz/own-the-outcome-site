@@ -31,22 +31,51 @@
   .logout { text-decoration: none; font-size: 14px; color: var(--muted); border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px; cursor: pointer; background: none; }
   .logout:hover { border-color: var(--ink); color: var(--ink); }
 
-  .portal-nav { background: var(--paper); border-bottom: 1px solid var(--line); }
-  .portal-nav-inner { display: flex; gap: 28px; max-width: 1180px; margin: 0 auto; padding: 0 32px; }
-  .portal-nav button {
-    text-decoration: none; font-size: 14px; font-weight: 500; color: var(--muted); background: none; border: none; cursor: pointer;
-    padding: 14px 0; border-bottom: 2px solid transparent; display: inline-block; font-family: var(--sans);
-  }
-  .portal-nav button:hover { color: var(--ink); }
-  .portal-nav button.active { color: var(--ink); border-color: var(--rust); }
+  .hamburger-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; margin-right: 14px; flex: none; }
+  .hamburger-btn span { display: block; width: 22px; height: 2px; background: var(--ink); margin: 4px 0; border-radius: 2px; }
 
-  .page-head { padding: 40px 32px 8px; max-width: 1180px; margin: 0 auto; }
+  .app-shell { display: flex; align-items: flex-start; max-width: 1180px; margin: 0 auto; }
+  .sidebar { width: 216px; flex: none; background: var(--paper); border-right: 1px solid var(--line); padding: 20px 0; position: sticky; top: 0; align-self: stretch; }
+  .side-link {
+    display: block; width: 100%; text-align: left; background: none; border: none; cursor: pointer;
+    font-family: var(--sans); font-size: 14.5px; font-weight: 500; color: var(--muted);
+    padding: 12px 26px; border-left: 3px solid transparent;
+  }
+  .side-link:hover { color: var(--ink); background: var(--cream); }
+  .side-link.active { color: var(--ink); background: var(--cream); border-left-color: var(--rust); font-weight: 600; }
+
+  .sidebar-overlay { display: none; }
+
+  .app-content { flex: 1; min-width: 0; }
+
+  .page-head { padding: 40px 32px 8px; }
   .page-head .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--rust); margin: 0 0 12px; }
   .page-head h1 { font-family: var(--serif); font-weight: 500; font-size: 30px; color: var(--ink); margin: 0 0 6px; letter-spacing: -0.01em; }
   .page-head p { color: var(--muted); margin: 0; font-size: 15px; }
 
-  main.tab-section { padding: 28px 32px 80px; max-width: 1180px; margin: 0 auto; display: none; }
+  main.tab-section { padding: 28px 32px 80px; display: none; }
   main.tab-section.active { display: block; }
+
+  @media (max-width: 860px) {
+    .hamburger-btn { display: inline-block; }
+    .sidebar {
+      position: fixed; left: 0; top: 0; height: 100vh; z-index: 60; width: 240px;
+      transform: translateX(-100%); transition: transform .18s ease; box-shadow: 2px 0 16px rgba(0,0,0,0.18);
+      overflow-y: auto;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay.show { display: block; position: fixed; inset: 0; background: rgba(20,19,15,0.35); z-index: 50; }
+  }
+
+  .dash-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 20px; }
+  .dash-stat .num { font-family: var(--serif); font-size: 30px; font-weight: 600; color: var(--ink); }
+  .dash-stat .label { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+
+  .stage-pill { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 4px 11px; border-radius: 20px; white-space: nowrap; }
+  .stage-pill.hot { background: #F7E9E4; color: #B14A2C; }
+  .stage-pill.warm { background: var(--wait-bg); color: var(--wait); }
+  .stage-pill.cold { background: #E7EEF5; color: #3C6E91; }
+  .stage-pill.archive { background: #EFEBE4; color: var(--muted); }
 
   .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 16px; flex-wrap: wrap; }
   .btn { display: inline-flex; align-items: center; justify-content: center; background: var(--ink); color: var(--cream); padding: 11px 20px; border-radius: 3px; text-decoration: none; font-weight: 600; font-size: 14px; border: 1px solid var(--ink); cursor: pointer; transition: background .15s ease, border-color .15s ease; }
@@ -145,6 +174,7 @@
 
   <header class="site">
     <div class="header-inner">
+      <button class="hamburger-btn" id="hamburgerBtn" type="button" aria-label="Open menu"><span></span><span></span><span></span></button>
       <a class="brand" href="index.html">
         <svg class="mark" viewBox="0 0 200 200" aria-hidden="true">
           <circle cx="100" cy="100" r="94" fill="#14130F"/>
@@ -160,22 +190,42 @@
     </div>
   </header>
 
-  <nav class="portal-nav">
-    <div class="portal-nav-inner">
-      <button class="tab-btn active" data-tab="clients">Clients</button>
-      <button class="tab-btn" data-tab="schedule">Schedule</button>
-      <button class="tab-btn" data-tab="inbox">Inbox</button>
-      <button class="tab-btn" data-tab="referrals">Referrals</button>
-    </div>
-  </nav>
+  <div class="app-shell">
+    <nav class="sidebar" id="sidebar">
+      <button class="side-link active" data-tab="dashboard">Dashboard</button>
+      <button class="side-link" data-tab="schedule">Schedule</button>
+      <button class="side-link" data-tab="clients">Clients</button>
+      <button class="side-link" data-tab="inbox">Inbox</button>
+      <button class="side-link" data-tab="leads">Leads</button>
+      <button class="side-link" data-tab="ai-news">AI News</button>
+      <button class="side-link" data-tab="referrals">Referrals</button>
+    </nav>
 
-  <div class="page-head">
-    <p class="eyebrow">Admin</p>
-    <h1>Run the business</h1>
-    <p>Manage clients, keep their builds up to date, and stay on top of everything coming in through the site.</p>
-  </div>
+    <div class="app-content">
+      <div class="page-head">
+        <p class="eyebrow">Admin</p>
+        <h1>Run the business</h1>
+        <p>Manage clients, keep their builds up to date, and stay on top of everything coming in through the site.</p>
+      </div>
 
-  <main class="tab-section active" id="tab-clients">
+      <main class="tab-section active" id="tab-dashboard">
+        <h4 class="subsection-title" style="margin-top:0;">This week</h4>
+        <div class="card" style="margin-bottom: 14px;">
+          <div id="dashWeekList"><p class="empty-note">Loading…</p></div>
+        </div>
+
+        <h4 class="subsection-title">Needs attention</h4>
+        <div class="card" style="margin-bottom: 14px;">
+          <div id="dashAttentionList"><p class="empty-note">Loading…</p></div>
+        </div>
+
+        <h4 class="subsection-title">Overview</h4>
+        <div class="card">
+          <div class="dash-stats" id="dashStats"></div>
+        </div>
+      </main>
+
+      <main class="tab-section" id="tab-clients">
     <div class="toolbar">
       <div></div>
       <button class="btn" id="addClientToggle" type="button">+ Add Client</button>
@@ -264,6 +314,61 @@
     <div id="inquiriesList"></div>
   </main>
 
+  <main class="tab-section" id="tab-leads">
+    <div class="toolbar">
+      <div></div>
+      <button class="btn" id="addLeadToggle" type="button">+ Add Lead</button>
+    </div>
+
+    <div class="card add-mini-form" id="addLeadForm" style="display:none; margin-bottom: 18px;">
+      <p class="field-label" style="margin-bottom:12px; font-size:14px;">New lead</p>
+      <div class="field-grid">
+        <div><label class="field-label">Business name</label><input class="field-input" id="nl-business"></div>
+        <div><label class="field-label">Contact name</label><input class="field-input" id="nl-contact"></div>
+      </div>
+      <div class="field-grid">
+        <div><label class="field-label">Email</label><input class="field-input" id="nl-email" type="email"></div>
+        <div><label class="field-label">Phone</label><input class="field-input" id="nl-phone" type="tel"></div>
+      </div>
+      <div class="field-grid">
+        <div><label class="field-label">Website</label><input class="field-input" id="nl-website" placeholder="https://"></div>
+        <div><label class="field-label">Stage</label>
+          <select class="field-input" id="nl-stage">
+            <option value="cold">Cold</option>
+            <option value="warm">Warm</option>
+            <option value="hot">Hot</option>
+          </select>
+        </div>
+      </div>
+      <label class="field-label">Notes</label>
+      <textarea class="field-input" id="nl-notes" rows="2" style="margin-bottom:14px;"></textarea>
+      <button class="btn" id="nl-submit" type="button">Add Lead</button>
+      <button class="btn-text-muted" id="nl-cancel" type="button" style="margin-left:14px;">Cancel</button>
+      <p class="empty-note" id="nl-error" style="display:none; color:var(--bad); padding: 10px 0 0;"></p>
+    </div>
+
+    <div class="card" style="margin-bottom: 18px; background: var(--cream); border-style: dashed;">
+      <p class="field-label" style="margin-bottom: 6px;">Find leads automatically</p>
+      <p class="empty-note" style="text-align:left; padding:0;">Reserved for automated lead sourcing (business search + email/phone lookup) once a data provider is connected. Manual leads below work now.</p>
+    </div>
+
+    <div class="filter-row" id="leadStageFilters">
+      <button class="filter-btn active" data-stage="all">All</button>
+      <button class="filter-btn" data-stage="hot">Hot</button>
+      <button class="filter-btn" data-stage="warm">Warm</button>
+      <button class="filter-btn" data-stage="cold">Cold</button>
+      <button class="filter-btn" data-stage="archive">Archive</button>
+    </div>
+    <div id="leadsList"></div>
+  </main>
+
+  <main class="tab-section" id="tab-ai-news">
+    <div class="card">
+      <p class="field-label" style="margin-bottom: 6px;">Coming soon</p>
+      <p class="empty-note" style="text-align:left; padding:0;">This tab will let you publish articles that show up on every client's Updates page. Still deciding how articles get created — once that's settled this becomes a real editor.</p>
+    </div>
+  </main>
+
   <main class="tab-section" id="tab-referrals">
     <div class="card">
       <table class="simple">
@@ -273,24 +378,46 @@
       <p class="empty-note" id="referralsEmpty" style="display:none;">No referrals yet.</p>
     </div>
   </main>
+    </div>
+  </div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="sb.js"></script>
   <script>
     let clientsCache = [];
+    let leadsCache = [];
+    let activeLeadStageFilter = 'all';
     let inquiriesCache = [];
     let activeTypeFilter = 'all';
     let activeStatusFilter = 'all';
 
-    // ---------- tabs ----------
-    document.querySelectorAll('.tab-btn').forEach(function (btn) {
+    // ---------- tabs / sidebar ----------
+    document.querySelectorAll('.side-link').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+        document.querySelectorAll('.side-link').forEach(function (b) { b.classList.remove('active'); });
         document.querySelectorAll('.tab-section').forEach(function (s) { s.classList.remove('active'); });
         btn.classList.add('active');
         document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        closeSidebar();
       });
     });
+
+    function openSidebar() {
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('sidebarOverlay').classList.add('show');
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('show');
+    }
+    document.getElementById('hamburgerBtn').addEventListener('click', openSidebar);
+    document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+
+    function switchTab(tab) {
+      var btn = document.querySelector('.side-link[data-tab="' + tab + '"]');
+      if (btn) btn.click();
+    }
 
     // ---------- clients tab ----------
     document.getElementById('addClientToggle').addEventListener('click', function () {
@@ -700,7 +827,7 @@
       if (item) item.converted = true;
       renderInquiries();
       await loadPending();
-      document.querySelector('.tab-btn[data-tab="clients"]').click();
+      switchTab('clients');
     }
 
     function renderInquiries() {
@@ -728,6 +855,215 @@
     async function saveInquiryNotes(id) {
       const notes = document.getElementById('notes-' + id).value;
       await sb.from('inquiries').update({ admin_notes: notes }).eq('id', id);
+    }
+
+    // ---------- leads tab ----------
+    document.getElementById('addLeadToggle').addEventListener('click', function () {
+      const f = document.getElementById('addLeadForm');
+      f.style.display = f.style.display === 'none' ? 'block' : 'none';
+    });
+    document.getElementById('nl-cancel').addEventListener('click', function () {
+      document.getElementById('addLeadForm').style.display = 'none';
+    });
+
+    document.getElementById('nl-submit').addEventListener('click', async function () {
+      const errEl = document.getElementById('nl-error');
+      errEl.style.display = 'none';
+      const business = document.getElementById('nl-business').value.trim();
+      if (!business) {
+        errEl.textContent = 'Business name is required.';
+        errEl.style.display = 'block';
+        return;
+      }
+      const btn = document.getElementById('nl-submit');
+      btn.disabled = true; btn.textContent = 'Adding…';
+
+      const { error: insertErr } = await sb.from('leads').insert({
+        business_name: business,
+        contact_name: document.getElementById('nl-contact').value.trim(),
+        email: document.getElementById('nl-email').value.trim(),
+        phone: document.getElementById('nl-phone').value.trim(),
+        website: document.getElementById('nl-website').value.trim(),
+        stage: document.getElementById('nl-stage').value,
+        notes: document.getElementById('nl-notes').value.trim(),
+        source: 'manual'
+      });
+
+      btn.disabled = false; btn.textContent = 'Add Lead';
+
+      if (insertErr) {
+        errEl.textContent = 'Could not add lead: ' + insertErr.message;
+        errEl.style.display = 'block';
+        return;
+      }
+
+      document.getElementById('addLeadForm').style.display = 'none';
+      ['nl-business','nl-contact','nl-email','nl-phone','nl-website','nl-notes'].forEach(function (id) { document.getElementById(id).value = ''; });
+      document.getElementById('nl-stage').value = 'cold';
+      await loadLeads();
+    });
+
+    document.querySelectorAll('#leadStageFilters .filter-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('#leadStageFilters .filter-btn').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        activeLeadStageFilter = btn.dataset.stage;
+        renderLeads();
+      });
+    });
+
+    function leadCardHTML(l) {
+      const convertBtn = l.converted
+        ? '<span class="status-pill muted">Converted to client</span>'
+        : '<button class="btn-outline small" onclick="convertLeadToClient(\'' + l.id + '\')">Convert to Client</button>';
+      const contactedBtn = '<button class="btn-outline small" onclick="toggleLeadContacted(\'' + l.id + '\')">' + (l.contacted ? '✓ Contacted' : 'Mark Contacted') + '</button>';
+      return '<div class="card" style="margin-bottom:10px;">' +
+        '<div class="client-row" style="cursor:default; align-items:flex-start;">' +
+          '<div class="client-row-main"><h3>' + escapeHtml(l.business_name) + '</h3>' +
+            '<p>' + [l.contact_name, l.email, l.phone].filter(Boolean).map(escapeHtml).join(' · ') + '</p>' +
+            (l.website ? '<p>' + escapeHtml(l.website) + '</p>' : '') +
+            (l.notes ? '<p style="margin-top:6px; color:var(--ink-soft);">' + escapeHtml(l.notes) + '</p>' : '') +
+          '</div>' +
+          '<div class="client-row-right" style="flex-wrap:wrap; justify-content:flex-end; max-width:340px;">' +
+            '<select onchange="updateLeadStage(\'' + l.id + '\', this.value)">' +
+              ['hot','warm','cold','archive'].map(function (s) { return '<option value="' + s + '" ' + (l.stage === s ? 'selected' : '') + '>' + s.charAt(0).toUpperCase() + s.slice(1) + '</option>'; }).join('') +
+            '</select>' +
+            '<span class="stage-pill ' + l.stage + '">' + l.stage + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="inquiry-footer">' +
+          '<span class="empty-note" style="padding:0; text-align:left;">Added ' + fmtDate(l.created_at) + '</span>' +
+          '<div style="display:flex; gap:10px; align-items:center;">' + contactedBtn + convertBtn + '<button class="btn-text-muted" onclick="deleteLead(\'' + l.id + '\')">Delete</button></div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    function renderLeads() {
+      let list = leadsCache;
+      if (activeLeadStageFilter !== 'all') list = list.filter(function (l) { return l.stage === activeLeadStageFilter; });
+      const el = document.getElementById('leadsList');
+      el.innerHTML = list.length ? list.map(leadCardHTML).join('') : '<p class="empty-note">No leads here yet.</p>';
+    }
+
+    async function loadLeads() {
+      const { data } = await sb.from('leads').select('*').order('created_at', { ascending: false });
+      leadsCache = data || [];
+      renderLeads();
+    }
+
+    async function updateLeadStage(id, stage) {
+      await sb.from('leads').update({ stage: stage, updated_at: new Date().toISOString() }).eq('id', id);
+      const item = leadsCache.find(function (l) { return l.id === id; });
+      if (item) item.stage = stage;
+      renderLeads();
+    }
+
+    async function toggleLeadContacted(id) {
+      const item = leadsCache.find(function (l) { return l.id === id; });
+      if (!item) return;
+      const next = !item.contacted;
+      await sb.from('leads').update({ contacted: next, updated_at: new Date().toISOString() }).eq('id', id);
+      item.contacted = next;
+      renderLeads();
+    }
+
+    async function deleteLead(id) {
+      if (!confirm('Delete this lead? This cannot be undone.')) return;
+      await sb.from('leads').delete().eq('id', id);
+      await loadLeads();
+    }
+
+    async function convertLeadToClient(leadId) {
+      const l = leadsCache.find(function (x) { return x.id === leadId; });
+      if (!l) return;
+      if (!l.email) { alert('This lead needs an email before it can become a client.'); return; }
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = 'OWN-';
+      for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
+
+      const { error: insertErr } = await sb.from('pending_clients').insert({
+        business_name: l.business_name,
+        contact_name: l.contact_name || '',
+        email: l.email,
+        phone: l.phone || '',
+        care_plan_active: false,
+        care_plan_price: 99,
+        login_code: code
+      });
+      if (insertErr) { alert('Could not convert: ' + insertErr.message); return; }
+
+      await sb.from('leads').update({ converted: true }).eq('id', leadId);
+      l.converted = true;
+      renderLeads();
+      await loadPending();
+      switchTab('clients');
+    }
+
+    // ---------- dashboard tab ----------
+    async function loadDashWeek() {
+      const now = new Date();
+      const weekOut = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const { data } = await sb.from('inquiries').select('*')
+        .eq('type', 'consultation').not('scheduled_at', 'is', null)
+        .gte('scheduled_at', now.toISOString()).lte('scheduled_at', weekOut.toISOString())
+        .order('scheduled_at', { ascending: true });
+      const el = document.getElementById('dashWeekList');
+      if (!data || !data.length) { el.innerHTML = '<p class="empty-note">Nothing booked in the next 7 days.</p>'; return; }
+      el.innerHTML = '<ul class="mini-list">' + data.map(function (q) {
+        return '<li><div class="mini-main"><div class="name">' + fmtDateTime(q.scheduled_at) + '</div>' +
+          '<div class="meta">' + escapeHtml(q.business_name || q.name || '') + (q.email ? ' · ' + escapeHtml(q.email) : '') + '</div></div>' +
+          '<span class="status-pill muted">' + (q.meeting_format === 'in_person' ? 'In person' : 'Zoom') + '</span></li>';
+      }).join('') + '</ul>';
+    }
+
+    async function loadDashAttention() {
+      const [{ data: pending }, { data: newInq }] = await Promise.all([
+        sb.from('pending_clients').select('*').is('activated_at', null).order('created_at', { ascending: true }),
+        sb.from('inquiries').select('*').eq('status', 'new').order('created_at', { ascending: true })
+      ]);
+      const now = new Date();
+      const items = [];
+      (pending || []).forEach(function (p) {
+        items.push({
+          name: p.business_name, label: 'Invite not sent yet', meta: 'Added ' + fmtDate(p.created_at),
+          action: '<button class="btn-outline small" onclick="switchTab(\'clients\')">Go to Clients</button>'
+        });
+      });
+      (newInq || []).forEach(function (q) {
+        const soon = q.scheduled_at && (new Date(q.scheduled_at) - now) > 0 && (new Date(q.scheduled_at) - now) < 48 * 60 * 60 * 1000;
+        items.push({
+          name: q.business_name || q.name || q.email || 'Prospect',
+          label: soon ? 'Consultation coming up, no reply yet' : 'New, no reply yet',
+          meta: (TYPE_LABELS[q.type] || q.type) + ' · ' + fmtDateTime(q.created_at),
+          action: '<button class="btn-outline small" onclick="switchTab(\'inbox\')">Go to Inbox</button>'
+        });
+      });
+      const el = document.getElementById('dashAttentionList');
+      if (!items.length) { el.innerHTML = '<p class="empty-note">Nothing needs attention right now.</p>'; return; }
+      el.innerHTML = '<ul class="mini-list">' + items.map(function (it) {
+        return '<li><div class="mini-main"><div class="name">' + escapeHtml(it.name) + '</div>' +
+          '<div class="meta">' + escapeHtml(it.label) + ' · ' + escapeHtml(it.meta) + '</div></div>' + it.action + '</li>';
+      }).join('') + '</ul>';
+    }
+
+    async function loadDashStats() {
+      const [{ count: clientCount }, { count: careCount }, { count: pendingCount }, { count: leadCount }] = await Promise.all([
+        sb.from('clients').select('*', { count: 'exact', head: true }),
+        sb.from('clients').select('*', { count: 'exact', head: true }).eq('care_plan_active', true),
+        sb.from('pending_clients').select('*', { count: 'exact', head: true }),
+        sb.from('leads').select('*', { count: 'exact', head: true }).neq('stage', 'archive')
+      ]);
+      const el = document.getElementById('dashStats');
+      el.innerHTML = [
+        { num: clientCount || 0, label: 'Total clients' },
+        { num: careCount || 0, label: 'Care Plan clients' },
+        { num: pendingCount || 0, label: 'Pending invites' },
+        { num: leadCount || 0, label: 'Active leads' }
+      ].map(function (s) { return '<div class="dash-stat"><div class="num">' + s.num + '</div><div class="label">' + s.label + '</div></div>'; }).join('');
+    }
+
+    async function loadDashboard() {
+      await Promise.all([loadDashWeek(), loadDashAttention(), loadDashStats()]);
     }
 
     // ---------- referrals tab ----------
@@ -947,12 +1283,14 @@
       await loadPending();
       await loadInquiries();
       await loadReferrals();
+      await loadLeads();
       await loadStandardData();
       renderStandardGrid();
       await loadExceptions();
       renderOverrideGrid();
       await loadUpcoming();
       await loadSettings();
+      await loadDashboard();
     })();
   </script>
 
