@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Own the Outcome</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='100' fill='%23201F1B'/%3E%3Ctext x='100' y='128' font-family='Georgia,serif' font-style='italic' font-weight='500' font-size='82' fill='%23FBF8F2' text-anchor='middle'%3EO%3Ctspan fill='%23DD7A45' font-family='Arial,sans-serif' font-style='normal' font-weight='700' font-size='62'%3Eo%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF8F2; --paper: #FFFFFF; --ink: #201F1B; --ink-soft: #47453E; --muted: #7A776C;
+    --line: #E6E0D2; --rust: #B14A2C; --good: #4B6A47; --good-bg: #EAF0E7;
+    --wait-bg: #F7EFDD; --wait: #92702B; --bad: #B14A2C; --bad-bg: #F7E9E4;
+    --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--sans); color: var(--ink-soft); line-height: 1.6; background: var(--cream); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  button { font-family: var(--sans); }
+
+  header.site { background: var(--paper); border-bottom: 1px solid var(--line); }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 20px 32px; max-width: 1180px; margin: 0 auto; }
+  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .brand .mark { width: 36px; height: 36px; flex: none; }
+  .brand .wordmark { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 19px; color: var(--ink); }
+  .header-actions { display: flex; align-items: center; gap: 20px; }
+  .client-name { font-size: 14px; color: var(--ink-soft); font-weight: 500; }
+  .logout { text-decoration: none; font-size: 14px; color: var(--muted); border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px; cursor: pointer; background: none; }
+  .logout:hover { border-color: var(--ink); color: var(--ink); }
+
+  .portal-nav { background: var(--paper); border-bottom: 1px solid var(--line); }
+  .portal-nav-inner { display: flex; gap: 28px; max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+  .portal-nav button {
+    text-decoration: none; font-size: 14px; font-weight: 500; color: var(--muted); background: none; border: none; cursor: pointer;
+    padding: 14px 0; border-bottom: 2px solid transparent; display: inline-block; font-family: var(--sans);
+  }
+  .portal-nav button:hover { color: var(--ink); }
+  .portal-nav button.active { color: var(--ink); border-color: var(--rust); }
+
+  .page-head { padding: 40px 32px 8px; max-width: 1180px; margin: 0 auto; }
+  .page-head .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--rust); margin: 0 0 12px; }
+  .page-head h1 { font-family: var(--serif); font-weight: 500; font-size: 30px; color: var(--ink); margin: 0 0 6px; letter-spacing: -0.01em; }
+  .page-head p { color: var(--muted); margin: 0; font-size: 15px; }
+
+  main.tab-section { padding: 28px 32px 80px; max-width: 1180px; margin: 0 auto; display: none; }
+  main.tab-section.active { display: block; }
+
+  .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 16px; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; background: var(--ink); color: var(--cream); padding: 11px 20px; border-radius: 3px; text-decoration: none; font-weight: 600; font-size: 14px; border: 1px solid var(--ink); cursor: pointer; transition: background .15s ease, border-color .15s ease; }
+  .btn:hover { background: var(--rust); border-color: var(--rust); }
+  .btn:disabled { opacity: 0.6; cursor: default; }
+  .btn-outline { display: inline-flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 600; color: var(--ink); text-decoration: none; border: 1px solid var(--line); border-radius: 3px; padding: 9px 14px; background: none; cursor: pointer; }
+  .btn-outline:hover { border-color: var(--ink); }
+  .btn-outline.danger { color: var(--bad); }
+  .btn-outline.danger:hover { border-color: var(--bad); }
+  .btn-outline.small { padding: 6px 10px; font-size: 12.5px; }
+  .btn-text-muted { font-size: 13px; color: var(--muted); background: none; border: none; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; padding: 0; }
+  .btn-text-muted:hover { color: var(--ink); }
+
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 24px; }
+  .card + .card { margin-top: 14px; }
+
+  .field-label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); margin: 0 0 5px; }
+  .field-input, select.field-input, textarea.field-input {
+    width: 100%; font-family: var(--sans); font-size: 14px; color: var(--ink);
+    background: var(--cream); border: 1px solid var(--line); border-radius: 3px; padding: 9px 12px;
+  }
+  .field-input:focus { outline: none; border-color: var(--rust); }
+  .field-input[readonly] { color: var(--muted); }
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .field-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+  .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .checkbox-row input { width: 16px; height: 16px; accent-color: var(--rust); cursor: pointer; }
+  .checkbox-row label { font-size: 13.5px; color: var(--ink-soft); cursor: pointer; }
+
+  .status-pill { font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 4px 11px; border-radius: 20px; background: var(--good-bg); color: var(--good); white-space: nowrap; }
+  .status-pill.rust { background: var(--rust); color: var(--cream); }
+  .status-pill.muted { background: #EFEBE4; color: var(--muted); }
+  .status-pill.wait { background: var(--wait-bg); color: var(--wait); }
+
+  .client-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; }
+  .client-row-main h3 { font-family: var(--serif); font-weight: 600; font-size: 17px; margin: 0 0 3px; color: var(--ink); }
+  .client-row-main p { font-size: 13px; color: var(--muted); margin: 0; }
+  .client-row-right { display: flex; align-items: center; gap: 12px; }
+  .chevron { color: var(--muted); font-size: 18px; transition: transform .15s ease; }
+  .client-card.open .chevron { transform: rotate(90deg); }
+
+  .client-detail { display: none; margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--line); }
+  .client-card.open .client-detail { display: block; }
+
+  .subsection-title { font-family: var(--serif); font-weight: 600; font-size: 15px; color: var(--ink); margin: 22px 0 12px; }
+  .subsection-title:first-child { margin-top: 0; }
+
+  .mini-list { list-style: none; margin: 0 0 12px; padding: 0; }
+  .mini-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 13.5px; }
+  .mini-list li:first-child { border-top: none; }
+  .mini-list .mini-main { flex: 1; }
+  .mini-list .mini-main .name { color: var(--ink); font-weight: 500; }
+  .mini-list .mini-main .meta { color: var(--muted); font-size: 12.5px; }
+  .mini-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+  .mini-actions select, .mini-actions input[type="number"] { font-size: 12.5px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 3px; background: var(--cream); }
+
+  .add-mini-form { background: var(--cream); border: 1px dashed var(--line); border-radius: 4px; padding: 16px; margin-top: 8px; }
+  .add-mini-form .field-grid { margin-bottom: 10px; }
+
+  .empty-note { text-align: center; padding: 24px; color: var(--muted); font-size: 14px; }
+
+  .filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .filter-btn { font-size: 13px; font-weight: 500; padding: 8px 14px; border-radius: 20px; border: 1px solid var(--line); background: var(--paper); cursor: pointer; color: var(--ink-soft); }
+  .filter-btn.active { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+
+  .inquiry-card { }
+  .inquiry-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+  .inquiry-type { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--rust); margin: 0 0 4px; }
+  .inquiry-from { font-family: var(--serif); font-weight: 600; font-size: 16px; color: var(--ink); margin: 0; }
+  .inquiry-date { font-size: 12.5px; color: var(--muted); margin: 2px 0 0; }
+  .inquiry-body p { font-size: 13.5px; color: var(--ink-soft); margin: 0 0 8px; }
+  .inquiry-body strong { color: var(--ink); }
+  .inquiry-notes { width: 100%; font-size: 13px; margin-top: 10px; min-height: 50px; }
+  .inquiry-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; gap: 12px; flex-wrap: wrap; }
+
+  table.simple { width: 100%; border-collapse: collapse; }
+  table.simple th { text-align: left; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.simple td { padding: 12px; border-bottom: 1px solid var(--line); font-size: 13.5px; vertical-align: top; }
+  table.simple tr:last-child td { border-bottom: none; }
+
+  .login-gate { max-width: 420px; margin: 100px auto; text-align: center; }
+</style>
+</head>
+<body>
+
+  <header class="site">
+    <div class="header-inner">
+      <a class="brand" href="index.html">
+        <svg class="mark" viewBox="0 0 200 200" aria-hidden="true">
+          <circle cx="100" cy="100" r="94" fill="#14130F"/>
+          <circle cx="100" cy="100" r="95" fill="none" stroke="#FBF8F2" stroke-width="6" opacity="0.9"/>
+          <text x="100" y="138" font-family="Fraunces" font-style="italic" font-weight="500" font-size="114" fill="#FBF8F2" text-anchor="middle">O<tspan fill="#DD7A45" font-family="Inter" font-style="normal" font-weight="700" font-size="86">o</tspan></text>
+        </svg>
+        <div class="wordmark">Own the Outcome</div>
+      </a>
+      <div class="header-actions">
+        <span class="client-name">Admin</span>
+        <button class="logout" type="button">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="portal-nav">
+    <div class="portal-nav-inner">
+      <button class="tab-btn active" data-tab="clients">Clients</button>
+      <button class="tab-btn" data-tab="inbox">Inbox</button>
+      <button class="tab-btn" data-tab="referrals">Referrals</button>
+    </div>
+  </nav>
+
+  <div class="page-head">
+    <p class="eyebrow">Admin</p>
+    <h1>Run the business</h1>
+    <p>Manage clients, keep their builds up to date, and stay on top of everything coming in through the site.</p>
+  </div>
+
+  <main class="tab-section active" id="tab-clients">
+    <div class="toolbar">
+      <div></div>
+      <button class="btn" id="addClientToggle" type="button">+ Add Client</button>
+    </div>
+
+    <div class="card add-mini-form" id="addClientForm" style="display:none; margin-bottom: 18px;">
+      <p class="field-label" style="margin-bottom:12px; font-size:14px;">New client</p>
+      <div class="field-grid">
+        <div><label class="field-label">Business name</label><input class="field-input" id="nc-business"></div>
+        <div><label class="field-label">Contact name</label><input class="field-input" id="nc-contact"></div>
+      </div>
+      <div class="field-grid">
+        <div><label class="field-label">Email (their login)</label><input class="field-input" id="nc-email" type="email"></div>
+        <div><label class="field-label">Phone</label><input class="field-input" id="nc-phone" type="tel"></div>
+      </div>
+      <div class="field-grid">
+        <div><label class="field-label">Temporary password</label><input class="field-input" id="nc-password" placeholder="Give this to the client"></div>
+        <div><label class="field-label">Care Plan price ($/mo)</label><input class="field-input" id="nc-price" type="number" value="99"></div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="nc-active"><label for="nc-active">Care Plan active</label>
+      </div>
+      <button class="btn" id="nc-submit" type="button">Create Client</button>
+      <button class="btn-text-muted" id="nc-cancel" type="button" style="margin-left:14px;">Cancel</button>
+      <p class="empty-note" id="nc-error" style="display:none; color:var(--bad); padding: 10px 0 0;"></p>
+    </div>
+
+    <div id="clientsList"></div>
+  </main>
+
+  <main class="tab-section" id="tab-inbox">
+    <div class="filter-row" id="typeFilters">
+      <button class="filter-btn active" data-type="all">All</button>
+      <button class="filter-btn" data-type="consultation">Consultation</button>
+      <button class="filter-btn" data-type="service_request">Service Request</button>
+      <button class="filter-btn" data-type="maintenance">Maintenance</button>
+      <button class="filter-btn" data-type="message">Message</button>
+    </div>
+    <div class="filter-row" id="statusFilters">
+      <button class="filter-btn active" data-status="all">All statuses</button>
+      <button class="filter-btn" data-status="new">New</button>
+      <button class="filter-btn" data-status="in_progress">In progress</button>
+      <button class="filter-btn" data-status="completed">Completed</button>
+    </div>
+    <div id="inquiriesList"></div>
+  </main>
+
+  <main class="tab-section" id="tab-referrals">
+    <div class="card">
+      <table class="simple">
+        <thead><tr><th>Client</th><th>Referred</th><th>Code</th><th>Note</th><th>Sent</th><th>Status</th></tr></thead>
+        <tbody id="referralsBody"></tbody>
+      </table>
+      <p class="empty-note" id="referralsEmpty" style="display:none;">No referrals yet.</p>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="sb.js"></script>
+  <script>
+    let clientsCache = [];
+    let inquiriesCache = [];
+    let activeTypeFilter = 'all';
+    let activeStatusFilter = 'all';
+
+    // ---------- tabs ----------
+    document.querySelectorAll('.tab-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+        document.querySelectorAll('.tab-section').forEach(function (s) { s.classList.remove('active'); });
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    // ---------- clients tab ----------
+    document.getElementById('addClientToggle').addEventListener('click', function () {
+      const f = document.getElementById('addClientForm');
+      f.style.display = f.style.display === 'none' ? 'block' : 'none';
+    });
+    document.getElementById('nc-cancel').addEventListener('click', function () {
+      document.getElementById('addClientForm').style.display = 'none';
+    });
+
+    document.getElementById('nc-submit').addEventListener('click', async function () {
+      const errEl = document.getElementById('nc-error');
+      errEl.style.display = 'none';
+      const business = document.getElementById('nc-business').value.trim();
+      const contact = document.getElementById('nc-contact').value.trim();
+      const email = document.getElementById('nc-email').value.trim();
+      const phone = document.getElementById('nc-phone').value.trim();
+      const password = document.getElementById('nc-password').value;
+      const price = parseFloat(document.getElementById('nc-price').value) || 99;
+      const active = document.getElementById('nc-active').checked;
+
+      if (!business || !email || !password || password.length < 6) {
+        errEl.textContent = 'Business name, email, and a password of at least 6 characters are required.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      const btn = document.getElementById('nc-submit');
+      btn.disabled = true; btn.textContent = 'Creating…';
+
+      const { data, error } = await sbCreate.auth.signUp({ email: email, password: password });
+
+      if (error || !data.user) {
+        errEl.textContent = error ? error.message : 'Could not create that login — try again.';
+        errEl.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Create Client';
+        return;
+      }
+
+      const { error: insertErr } = await sb.from('clients').insert({
+        id: data.user.id,
+        business_name: business,
+        contact_name: contact,
+        email: email,
+        phone: phone,
+        care_plan_active: active,
+        care_plan_price: price
+      });
+
+      btn.disabled = false; btn.textContent = 'Create Client';
+
+      if (insertErr) {
+        errEl.textContent = 'Login was created, but saving the client record failed: ' + insertErr.message;
+        errEl.style.display = 'block';
+        return;
+      }
+
+      document.getElementById('addClientForm').style.display = 'none';
+      ['nc-business','nc-contact','nc-email','nc-phone','nc-password'].forEach(function(id){ document.getElementById(id).value=''; });
+      document.getElementById('nc-price').value = 99;
+      document.getElementById('nc-active').checked = false;
+      await loadClients();
+    });
+
+    function clientCardHTML(c) {
+      const planPill = c.care_plan_active
+        ? '<span class="status-pill rust">Care Plan</span>'
+        : '<span class="status-pill muted">Not subscribed</span>';
+      return '<div class="card client-card" data-client-id="' + c.id + '">' +
+        '<div class="client-row" onclick="toggleClient(\'' + c.id + '\')">' +
+          '<div class="client-row-main"><h3>' + escapeHtml(c.business_name) + '</h3><p>' + escapeHtml(c.email) + (c.phone ? ' · ' + escapeHtml(c.phone) : '') + '</p></div>' +
+          '<div class="client-row-right">' + planPill + '<span class="chevron">›</span></div>' +
+        '</div>' +
+        '<div class="client-detail" id="detail-' + c.id + '"></div>' +
+      '</div>';
+    }
+
+    async function loadClients() {
+      const { data } = await sb.from('clients').select('*').order('created_at', { ascending: false });
+      clientsCache = data || [];
+      const list = document.getElementById('clientsList');
+      if (!clientsCache.length) {
+        list.innerHTML = '<p class="empty-note">No clients yet — add your first one above.</p>';
+        return;
+      }
+      list.innerHTML = clientsCache.map(clientCardHTML).join('');
+    }
+
+    async function toggleClient(id) {
+      const card = document.querySelector('.client-card[data-client-id="' + id + '"]');
+      const wasOpen = card.classList.contains('open');
+      document.querySelectorAll('.client-card.open').forEach(function (c) { c.classList.remove('open'); });
+      if (wasOpen) return;
+      card.classList.add('open');
+      await renderClientDetail(id);
+    }
+
+    async function renderClientDetail(id) {
+      const c = clientsCache.find(function (x) { return x.id === id; });
+      const el = document.getElementById('detail-' + id);
+      el.innerHTML = '<p class="empty-note">Loading…</p>';
+
+      const [{ data: tools }, { data: acts }] = await Promise.all([
+        sb.from('tools').select('*').eq('client_id', id).order('created_at', { ascending: true }),
+        sb.from('activity').select('*').eq('client_id', id).order('created_at', { ascending: false })
+      ]);
+
+      el.innerHTML =
+        '<div class="field-grid">' +
+          '<div><label class="field-label">Business name</label><input class="field-input" id="e-business-' + id + '" value="' + escapeHtml(c.business_name) + '"></div>' +
+          '<div><label class="field-label">Contact name</label><input class="field-input" id="e-contact-' + id + '" value="' + escapeHtml(c.contact_name || '') + '"></div>' +
+        '</div>' +
+        '<div class="field-grid">' +
+          '<div><label class="field-label">Email (login — read only)</label><input class="field-input" id="e-email-' + id + '" value="' + escapeHtml(c.email) + '" readonly></div>' +
+          '<div><label class="field-label">Phone</label><input class="field-input" id="e-phone-' + id + '" value="' + escapeHtml(c.phone || '') + '"></div>' +
+        '</div>' +
+        '<div class="field-grid three">' +
+          '<div><label class="field-label">Care Plan price ($/mo)</label><input class="field-input" type="number" id="e-price-' + id + '" value="' + c.care_plan_price + '"></div>' +
+          '<div><label class="field-label">Next billing date</label><input class="field-input" type="date" id="e-billing-' + id + '" value="' + (c.next_billing_date || '') + '"></div>' +
+          '<div><label class="field-label">Next update date</label><input class="field-input" type="date" id="e-update-' + id + '" value="' + (c.next_update_date || '') + '"></div>' +
+        '</div>' +
+        '<div class="checkbox-row"><input type="checkbox" id="e-active-' + id + '" ' + (c.care_plan_active ? 'checked' : '') + '><label for="e-active-' + id + '">Care Plan active</label></div>' +
+        '<button class="btn-outline" onclick="saveClient(\'' + id + '\')">Save Client Info</button>' +
+        '<button class="btn-outline danger" style="margin-left:10px;" onclick="deleteClient(\'' + id + '\')">Delete Client</button>' +
+        '<p class="empty-note" id="e-status-' + id + '" style="display:none; padding:8px 0 0;"></p>' +
+
+        '<h4 class="subsection-title">Tools</h4>' +
+        '<ul class="mini-list" id="tools-list-' + id + '">' +
+          (tools && tools.length ? tools.map(function (t) { return toolMiniHTML(t); }).join('') : '<li class="empty-note" style="padding:8px 0;">No tools yet.</li>') +
+        '</ul>' +
+        '<div class="add-mini-form">' +
+          '<div class="field-grid three">' +
+            '<div><label class="field-label">Name</label><input class="field-input" id="nt-name-' + id + '"></div>' +
+            '<div><label class="field-label">Category</label><input class="field-input" id="nt-category-' + id + '"></div>' +
+            '<div><label class="field-label">Status</label><select class="field-input" id="nt-status-' + id + '"><option value="building">Building</option><option value="live">Live</option><option value="paused">Paused</option></select></div>' +
+          '</div>' +
+          '<div class="field-grid three">' +
+            '<div><label class="field-label">Progress %</label><input class="field-input" type="number" min="0" max="100" id="nt-progress-' + id + '"></div>' +
+            '<div><label class="field-label">Live since / est. date</label><input class="field-input" type="date" id="nt-date-' + id + '"></div>' +
+            '<div><label class="field-label">Docs URL</label><input class="field-input" id="nt-docs-' + id + '"></div>' +
+          '</div>' +
+          '<label class="field-label">Description</label><textarea class="field-input" id="nt-desc-' + id + '" rows="2" style="margin-bottom:10px;"></textarea>' +
+          '<button class="btn-outline small" onclick="addTool(\'' + id + '\')">+ Add Tool</button>' +
+        '</div>' +
+
+        '<h4 class="subsection-title">Activity feed (shown on their Updates page)</h4>' +
+        '<ul class="mini-list" id="activity-list-' + id + '">' +
+          (acts && acts.length ? acts.map(function (a) { return activityMiniHTML(a); }).join('') : '<li class="empty-note" style="padding:8px 0;">No activity logged yet.</li>') +
+        '</ul>' +
+        '<div class="add-mini-form">' +
+          '<label class="field-label">New update text</label>' +
+          '<input class="field-input" id="na-text-' + id + '" placeholder="e.g., Your tool went live." style="margin-bottom:10px;">' +
+          '<button class="btn-outline small" onclick="addActivity(\'' + id + '\')">+ Add Update</button>' +
+        '</div>';
+    }
+
+    function toolMiniHTML(t) {
+      return '<li>' +
+        '<div class="mini-main"><span class="name">' + escapeHtml(t.name) + '</span>' +
+          (t.category ? ' <span class="meta">— ' + escapeHtml(t.category) + '</span>' : '') + '<br>' +
+          '<span class="meta">' + (t.status === 'live' ? 'Live since ' + (t.live_since || '—') : (t.status + ', ' + (t.progress_pct || 0) + '%')) + '</span>' +
+        '</div>' +
+        '<div class="mini-actions">' +
+          '<select onchange="updateTool(\'' + t.id + '\', \'status\', this.value)">' +
+            '<option value="building" ' + (t.status === 'building' ? 'selected' : '') + '>Building</option>' +
+            '<option value="live" ' + (t.status === 'live' ? 'selected' : '') + '>Live</option>' +
+            '<option value="paused" ' + (t.status === 'paused' ? 'selected' : '') + '>Paused</option>' +
+          '</select>' +
+          '<input type="number" min="0" max="100" value="' + (t.progress_pct || 0) + '" style="width:60px;" onchange="updateTool(\'' + t.id + '\', \'progress_pct\', parseInt(this.value))" title="Progress %">' +
+          '<button class="btn-text-muted" onclick="deleteTool(\'' + t.id + '\', \'' + t.client_id + '\')">Delete</button>' +
+        '</div>' +
+      '</li>';
+    }
+
+    function activityMiniHTML(a) {
+      return '<li>' +
+        '<div class="mini-main"><span class="name">' + escapeHtml(a.text) + '</span><br><span class="meta">' + fmtDateTime(a.created_at) + '</span></div>' +
+        '<div class="mini-actions"><button class="btn-text-muted" onclick="deleteActivity(\'' + a.id + '\', \'' + a.client_id + '\')">Delete</button></div>' +
+      '</li>';
+    }
+
+    async function saveClient(id) {
+      const statusEl = document.getElementById('e-status-' + id);
+      const payload = {
+        business_name: document.getElementById('e-business-' + id).value.trim(),
+        contact_name: document.getElementById('e-contact-' + id).value.trim(),
+        phone: document.getElementById('e-phone-' + id).value.trim(),
+        care_plan_price: parseFloat(document.getElementById('e-price-' + id).value) || 0,
+        care_plan_active: document.getElementById('e-active-' + id).checked,
+        next_billing_date: document.getElementById('e-billing-' + id).value || null,
+        next_update_date: document.getElementById('e-update-' + id).value || null
+      };
+      const { error } = await sb.from('clients').update(payload).eq('id', id);
+      statusEl.style.display = 'block';
+      statusEl.textContent = error ? ('Save failed: ' + error.message) : 'Saved.';
+      if (!error) await loadClients();
+    }
+
+    async function deleteClient(id) {
+      if (!confirm('Delete this client and all their tools, requests, and activity? This cannot be undone.')) return;
+      await sb.from('clients').delete().eq('id', id);
+      await loadClients();
+    }
+
+    async function addTool(clientId) {
+      const name = document.getElementById('nt-name-' + clientId).value.trim();
+      if (!name) return;
+      await sb.from('tools').insert({
+        client_id: clientId,
+        name: name,
+        category: document.getElementById('nt-category-' + clientId).value.trim(),
+        status: document.getElementById('nt-status-' + clientId).value,
+        progress_pct: parseInt(document.getElementById('nt-progress-' + clientId).value) || null,
+        live_since: document.getElementById('nt-date-' + clientId).value || null,
+        documentation_url: document.getElementById('nt-docs-' + clientId).value.trim(),
+        description: document.getElementById('nt-desc-' + clientId).value.trim()
+      });
+      await renderClientDetail(clientId);
+    }
+
+    async function updateTool(toolId, field, value) {
+      const payload = {}; payload[field] = value;
+      await sb.from('tools').update(payload).eq('id', toolId);
+    }
+
+    async function deleteTool(toolId, clientId) {
+      await sb.from('tools').delete().eq('id', toolId);
+      await renderClientDetail(clientId);
+    }
+
+    async function addActivity(clientId) {
+      const text = document.getElementById('na-text-' + clientId).value.trim();
+      if (!text) return;
+      await sb.from('activity').insert({ client_id: clientId, text: text });
+      await renderClientDetail(clientId);
+    }
+
+    async function deleteActivity(activityId, clientId) {
+      await sb.from('activity').delete().eq('id', activityId);
+      await renderClientDetail(clientId);
+    }
+
+    // ---------- inbox tab ----------
+    document.querySelectorAll('#typeFilters .filter-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('#typeFilters .filter-btn').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        activeTypeFilter = btn.dataset.type;
+        renderInquiries();
+      });
+    });
+    document.querySelectorAll('#statusFilters .filter-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('#statusFilters .filter-btn').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        activeStatusFilter = btn.dataset.status;
+        renderInquiries();
+      });
+    });
+
+    const TYPE_LABELS = { consultation: 'Consultation request', service_request: 'Service request', maintenance: 'Maintenance request', message: 'Message' };
+
+    function inquiryFieldsHTML(q) {
+      if (q.type === 'consultation') {
+        return '<p><strong>Business:</strong> ' + escapeHtml(q.business_name || '—') + ' · <strong>Phone:</strong> ' + escapeHtml(q.phone || '—') + ' · <strong>Website:</strong> ' + escapeHtml(q.website || '—') + '</p>' +
+          '<p><strong>Scale:</strong> ' + escapeHtml(q.business_scale || '—') + ' · <strong>Years in service:</strong> ' + escapeHtml(q.years_in_service || '—') + '</p>' +
+          '<p><strong>Main issues:</strong> ' + escapeHtml(q.main_issues || '—') + '</p>' +
+          '<p><strong>12-month goal:</strong> ' + escapeHtml(q.business_goal || '—') + '</p>';
+      }
+      if (q.type === 'service_request' || q.type === 'maintenance') {
+        return '<p><strong>Wants:</strong> ' + escapeHtml(q.want || '—') + '</p>' +
+          '<p><strong>Expected result:</strong> ' + escapeHtml(q.expected_result || '—') + '</p>';
+      }
+      return '<p>' + escapeHtml(q.body || '—') + '</p>';
+    }
+
+    function inquiryCardHTML(q) {
+      const statusClass = q.status === 'completed' ? '' : (q.status === 'in_progress' ? 'wait' : 'rust');
+      const client = clientsCache.find(function (c) { return c.id === q.client_id; });
+      const fromLabel = client ? client.business_name : (q.name || q.email || 'Prospect');
+      return '<div class="card inquiry-card">' +
+        '<div class="inquiry-top">' +
+          '<div><p class="inquiry-type">' + TYPE_LABELS[q.type] + '</p><p class="inquiry-from">' + escapeHtml(fromLabel) + '</p><p class="inquiry-date">' + fmtDateTime(q.created_at) + (q.email ? ' · ' + escapeHtml(q.email) : '') + '</p></div>' +
+          '<span class="status-pill ' + statusClass + '">' + (q.status === 'completed' ? 'Completed' : (q.status === 'in_progress' ? 'In progress' : 'New')) + '</span>' +
+        '</div>' +
+        '<div class="inquiry-body">' + inquiryFieldsHTML(q) + '</div>' +
+        '<textarea class="field-input inquiry-notes" placeholder="Internal notes…" id="notes-' + q.id + '">' + escapeHtml(q.admin_notes || '') + '</textarea>' +
+        '<div class="inquiry-footer">' +
+          '<select onchange="updateInquiry(\'' + q.id + '\', \'status\', this.value)">' +
+            '<option value="new" ' + (q.status === 'new' ? 'selected' : '') + '>New</option>' +
+            '<option value="in_progress" ' + (q.status === 'in_progress' ? 'selected' : '') + '>In progress</option>' +
+            '<option value="completed" ' + (q.status === 'completed' ? 'selected' : '') + '>Completed</option>' +
+          '</select>' +
+          '<button class="btn-outline small" onclick="saveInquiryNotes(\'' + q.id + '\')">Save Notes</button>' +
+        '</div>' +
+      '</div>';
+    }
+
+    function renderInquiries() {
+      let list = inquiriesCache;
+      if (activeTypeFilter !== 'all') list = list.filter(function (q) { return q.type === activeTypeFilter; });
+      if (activeStatusFilter !== 'all') list = list.filter(function (q) { return q.status === activeStatusFilter; });
+      const el = document.getElementById('inquiriesList');
+      el.innerHTML = list.length ? list.map(inquiryCardHTML).join('') : '<p class="empty-note">Nothing here.</p>';
+    }
+
+    async function loadInquiries() {
+      const { data } = await sb.from('inquiries').select('*').order('created_at', { ascending: false });
+      inquiriesCache = data || [];
+      renderInquiries();
+    }
+
+    async function updateInquiry(id, field, value) {
+      const payload = {}; payload[field] = value;
+      await sb.from('inquiries').update(payload).eq('id', id);
+      const item = inquiriesCache.find(function (q) { return q.id === id; });
+      if (item) item[field] = value;
+      renderInquiries();
+    }
+
+    async function saveInquiryNotes(id) {
+      const notes = document.getElementById('notes-' + id).value;
+      await sb.from('inquiries').update({ admin_notes: notes }).eq('id', id);
+    }
+
+    // ---------- referrals tab ----------
+    async function loadReferrals() {
+      const { data } = await sb.from('referrals').select('*').order('created_at', { ascending: false });
+      const body = document.getElementById('referralsBody');
+      const empty = document.getElementById('referralsEmpty');
+      if (!data || !data.length) { body.innerHTML = ''; empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      body.innerHTML = data.map(function (r) {
+        const client = clientsCache.find(function (c) { return c.id === r.client_id; });
+        return '<tr>' +
+          '<td>' + escapeHtml(client ? client.business_name : '—') + '</td>' +
+          '<td>' + escapeHtml(r.referred_email) + '</td>' +
+          '<td>' + escapeHtml(r.code) + '</td>' +
+          '<td>' + escapeHtml(r.note || '—') + '</td>' +
+          '<td>' + fmtDateTime(r.created_at) + '</td>' +
+          '<td><select onchange="updateReferral(\'' + r.id + '\', this.value)">' +
+            '<option value="sent" ' + (r.status === 'sent' ? 'selected' : '') + '>Sent</option>' +
+            '<option value="reward_earned" ' + (r.status === 'reward_earned' ? 'selected' : '') + '>Reward earned</option>' +
+          '</select></td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    async function updateReferral(id, value) {
+      await sb.from('referrals').update({ status: value }).eq('id', id);
+    }
+
+    // ---------- boot ----------
+    (async function () {
+      const admin = await requireAdmin();
+      if (!admin) return;
+      document.querySelector('.client-name').textContent = admin.name || 'Admin';
+      await loadClients();
+      await loadInquiries();
+      await loadReferrals();
+    })();
+  </script>
+
+</body>
+</html>

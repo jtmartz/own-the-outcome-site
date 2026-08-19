@@ -50,7 +50,7 @@
   .brand .wordmark { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 19px; color: var(--ink); }
   .header-actions { display: flex; align-items: center; gap: 20px; }
   .client-name { font-size: 14px; color: var(--ink-soft); font-weight: 500; }
-  .logout { text-decoration: none; font-size: 14px; color: var(--muted); border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px; }
+  .logout { text-decoration: none; font-size: 14px; color: var(--muted); border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px; cursor: pointer; background: none; font-family: var(--sans); }
   .logout:hover { border-color: var(--ink); color: var(--ink); }
 
   .portal-nav { background: var(--paper); border-bottom: 1px solid var(--line); }
@@ -95,59 +95,30 @@
 
   .card { background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 28px; }
 
-  .plan-card .plan-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
-  .plan-card h3 { font-family: var(--serif); font-weight: 600; font-size: 19px; margin: 0; color: var(--ink); }
   .status-pill {
     font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
     padding: 5px 12px; border-radius: 20px; background: var(--good-bg); color: var(--good);
   }
-  .plan-sub { font-size: 13.5px; color: var(--muted); margin: -8px 0 16px; }
-  .plan-list { list-style: none; margin: 0; padding: 0; }
-  .plan-list li {
-    display: flex; align-items: baseline; gap: 10px; font-size: 14.5px; color: var(--ink-soft);
-    padding: 10px 0; border-top: 1px solid var(--line);
-  }
-  .plan-list li:first-child { border-top: none; }
-  .plan-list .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--rust); flex: none; }
-  .plan-note { font-size: 13px; color: var(--muted); margin: 18px 0 0; }
 
-  .perks-card { background: var(--rust); border-color: var(--rust); color: var(--cream); }
-  .perks-card h3 { color: var(--cream); }
-  .perks-card .plan-sub { color: #F6DECE; }
-  .perks-card .plan-list li { color: #FBEADD; border-top-color: rgba(255,255,255,0.22); }
-  .perks-card .plan-list .dot { background: var(--cream); }
+  .plan-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .plan-header-sub { font-size: 14px; color: var(--muted); margin: 0 0 22px; }
 
-  .perk-modules { margin: 4px 0 0; }
-  .perk-module { border-top: 1px solid rgba(255,255,255,0.22); }
-  .perk-module:first-child { border-top: none; }
-  .perk-module-toggle {
-    width: 100%; display: flex; align-items: center; justify-content: space-between;
-    background: none; border: none; cursor: pointer; padding: 14px 0; font-family: var(--sans);
-    color: var(--cream); text-align: left;
+  .perks-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin: 0 0 22px; }
+  .perk-card {
+    background: var(--rust); border: 1px solid var(--rust); border-radius: 4px;
+    padding: 24px 26px; color: var(--cream);
   }
-  .perk-module-label { display: flex; align-items: center; gap: 10px; font-size: 14.5px; color: #FBEADD; }
-  .perk-module-label .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cream); flex: none; }
-  .perk-chevron { color: #E7B49A; font-size: 17px; transition: transform .15s ease, color .15s ease; flex: none; }
-  .perk-module.open .perk-chevron { transform: rotate(90deg); color: var(--cream); }
-  .perk-module-body { display: none; padding: 0 0 18px 16px; }
-  .perk-module.open .perk-module-body { display: block; }
-  .perk-module-body p { font-size: 13.5px; color: #F6DECE; margin: 0 0 10px; }
-  .perks-card .perk-module-body .btn-text-muted { color: var(--cream); text-decoration: underline; text-underline-offset: 2px; }
-  .perks-card .perk-module-body .btn-text-muted:hover { color: var(--ink); }
-  .perk-check {
-    display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--cream);
-    cursor: pointer; margin-top: 4px;
+  .perk-card .icon {
+    width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.5);
+    display: flex; align-items: center; justify-content: center; font-family: var(--serif); font-style: italic; font-size: 16px;
+    margin-bottom: 14px; color: var(--cream);
   }
+  .perk-card h3 { font-family: var(--serif); font-weight: 600; font-size: 17px; margin: 0 0 8px; color: var(--cream); }
+  .perk-card p { font-size: 13.5px; margin: 0 0 14px; color: #F6DECE; }
+  .perk-card .perk-link { font-size: 13.5px; color: var(--cream); text-decoration: underline; text-underline-offset: 2px; }
+  .perk-card .perk-link:hover { color: #F6DECE; }
+  .perk-check { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--cream); cursor: pointer; margin: 0; }
   .perk-check input { accent-color: var(--ink); width: 15px; height: 15px; cursor: pointer; }
-  .perks-card .plan-note { color: #F0CBB4; }
-  .perks-card .status-pill { background: rgba(255,255,255,0.2); color: var(--cream); }
-  .perks-card .status-pill.muted { background: rgba(255,255,255,0.12); color: #F6DECE; }
-  .perks-card .btn-outline { border-color: rgba(255,255,255,0.4); color: var(--cream); }
-  .perks-card .btn-outline:hover { border-color: var(--cream); background: rgba(255,255,255,0.08); }
-  .perks-card .btn-outline.primary { background: var(--cream); color: var(--ink); border-color: var(--cream); }
-  .perks-card .btn-outline.primary:hover { background: var(--ink); border-color: var(--ink); color: var(--cream); }
-  .perks-card .btn-text-muted { color: #F6DECE; }
-  .perks-card .btn-text-muted:hover { color: var(--cream); }
 
   .btn-outline {
     display: inline-flex; align-items: center; justify-content: center;
@@ -158,42 +129,22 @@
   .btn-outline:hover { border-color: var(--ink); }
   .btn-text-muted {
     font-size: 13.5px; color: var(--muted); text-decoration: none; border-bottom: 1px solid transparent;
+    background: none; border-width: 0 0 1px 0; border-color: transparent; cursor: pointer; font-family: var(--sans); padding: 0;
   }
   .btn-text-muted:hover { color: var(--ink); border-color: var(--ink); }
-  .billing-actions { display: flex; align-items: center; gap: 20px; margin-top: 18px; }
-  .billing-line { font-size: 15px; color: var(--ink); margin: 0 0 4px; }
-  .billing-line strong { font-weight: 600; }
-
-  table.requests { width: 100%; border-collapse: collapse; background: var(--paper); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
-  table.requests th {
-    text-align: left; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
-    font-weight: 600; padding: 14px 20px; border-bottom: 1px solid var(--line); background: var(--cream);
-  }
-  table.requests td { padding: 15px 20px; border-bottom: 1px solid var(--line); font-size: 14.5px; color: var(--ink-soft); vertical-align: top; }
-  table.requests tr:last-child td { border-bottom: none; }
-  table.requests td.name { color: var(--ink); font-weight: 500; }
-  .req-status { display: inline-block; font-size: 11.5px; font-weight: 600; padding: 4px 11px; border-radius: 20px; white-space: nowrap; }
-  .req-status.done { background: var(--good-bg); color: var(--good); }
-  .req-status.progress { background: var(--wait-bg); color: var(--wait); }
-  .update-type {
-    display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
-    color: var(--rust); margin: 0 0 3px;
-  }
-  .update-type.muted { color: var(--muted); }
-  .update-desc { font-size: 14.5px; color: var(--ink); }
-  .no-status { color: var(--muted); }
+  .billing-actions { display: flex; align-items: center; gap: 20px; margin-top: 4px; }
 
   footer.portal-footer { text-align: center; padding: 32px; font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); margin-top: 40px; }
 
   @media (max-width: 780px) {
     .actions-row { grid-template-columns: 1fr; }
-    table.requests { display: block; overflow-x: auto; }
+    .perks-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 
-  <div class="badge-note">Visual preview only — this portal isn't wired up to real accounts or data yet.</div>
+  <div class="badge-note">Care Plan portal — live data from your account.</div>
 
   <header class="site">
     <div class="header-inner">
@@ -206,8 +157,8 @@
         <div class="wordmark">Own the Outcome</div>
       </a>
       <div class="header-actions">
-        <span class="client-name">[Client Business Name]</span>
-        <a class="logout" href="#">Log out</a>
+        <span class="client-name">…</span>
+        <button class="logout" type="button">Log out</button>
       </div>
     </div>
   </header>
@@ -223,7 +174,7 @@
 
   <div class="page-head">
     <p class="eyebrow">Client Portal</p>
-    <h1>Welcome back, [First Name]</h1>
+    <h1 id="welcomeHeading">Welcome back</h1>
     <p>Everything about your build and your Care Plan, in one place.</p>
   </div>
 
@@ -246,73 +197,75 @@
   </div>
 
   <section>
-    <h2 class="section-title">Care Plan</h2>
-    <div class="card plan-card perks-card">
-      <div class="plan-top">
-        <h3>Care Plan — $99/mo</h3>
-        <span class="status-pill">Active</span>
+    <div class="plan-header-row">
+      <h2 class="section-title" style="margin-bottom:0;">Care Plan</h2>
+      <span class="status-pill">Active</span>
+    </div>
+    <p class="plan-header-sub">$<span id="planPrice">99</span>/mo · Next billing <span id="nextBillingDate">—</span> · Next update <span id="nextUpdateDate">—</span></p>
+
+    <div class="perks-grid">
+      <div class="perk-card">
+        <div class="icon">↗</div>
+        <h3>Performance report</h3>
+        <p>Your latest monthly report is ready to view — how your build's actually performing.</p>
+        <a class="perk-link" href="updates.html">View report →</a>
       </div>
-      <p class="plan-sub">Exclusive to Care Plan members — everyone else can still request work, it's just quoted per project.</p>
-      <div class="perk-modules">
-        <div class="perk-module">
-          <button class="perk-module-toggle" type="button">
-            <span class="perk-module-label"><span class="dot"></span> Performance report</span>
-            <span class="perk-chevron">›</span>
-          </button>
-          <div class="perk-module-body">
-            <p>Your latest monthly report is ready to view — how your build's actually performing.</p>
-            <a class="btn-text-muted" href="updates.html">View report →</a>
-          </div>
-        </div>
-        <div class="perk-module">
-          <button class="perk-module-toggle" type="button">
-            <span class="perk-module-label"><span class="dot"></span> AI update</span>
-            <span class="perk-chevron">›</span>
-          </button>
-          <div class="perk-module-body">
-            <p>A short monthly briefing on new AI tools worth knowing about. Next one: [Month] [Day].</p>
-            <label class="perk-check"><input type="checkbox" checked> Email me this update</label>
-          </div>
-        </div>
-        <div class="perk-module">
-          <button class="perk-module-toggle" type="button">
-            <span class="perk-module-label"><span class="dot"></span> Maintenance requests</span>
-            <span class="perk-chevron">›</span>
-          </button>
-          <div class="perk-module-body">
-            <p>Ongoing monitoring and small fixes, on us. [0] open right now.</p>
-            <a class="btn-text-muted" href="request-service.html">Submit a maintenance request →</a>
-          </div>
-        </div>
-        <div class="perk-module">
-          <button class="perk-module-toggle" type="button">
-            <span class="perk-module-label"><span class="dot"></span> 20% off new builds</span>
-            <span class="perk-chevron">›</span>
-          </button>
-          <div class="perk-module-body">
-            <p>Applied automatically at checkout on any new tool or integration package — no code needed.</p>
-            <a class="btn-text-muted" href="request-service.html">Request a Service →</a>
-          </div>
-        </div>
+      <div class="perk-card">
+        <div class="icon">✦</div>
+        <h3>AI update</h3>
+        <p>A short monthly briefing on new AI tools worth knowing about. Next one: <span id="aiUpdateDate">—</span>.</p>
+        <label class="perk-check"><input type="checkbox" checked> Email me this update</label>
       </div>
-      <p class="plan-note">Next billing date: [Month] [Day]  ·  Next update: [Month] [Day]</p>
-      <div class="billing-actions">
-        <a class="btn-outline" href="#">Upgrade Plan</a>
-        <a class="btn-text-muted" href="#">Cancel Subscription</a>
+      <div class="perk-card">
+        <div class="icon">⚙</div>
+        <h3>Maintenance requests</h3>
+        <p>Ongoing monitoring and small fixes, on us. <span id="maintenanceCount">0</span> open right now.</p>
+        <a class="perk-link" href="request-service.html">Submit a maintenance request →</a>
       </div>
+      <div class="perk-card">
+        <div class="icon">%</div>
+        <h3>20% off new builds</h3>
+        <p>Applied automatically at checkout on any new tool or integration package — no code needed.</p>
+        <a class="perk-link" href="request-service.html">Request a Service →</a>
+      </div>
+    </div>
+
+    <div class="billing-actions">
+      <a class="btn-outline" href="#">Upgrade Plan</a>
+      <button class="btn-text-muted" type="button">Cancel Subscription</button>
     </div>
   </section>
 
   <footer class="portal-footer">
-    OWN THE OUTCOME  ·  Client Portal  ·  [SUPPORT EMAIL]
+    OWN THE OUTCOME  ·  Client Portal  ·  hello@owntheoutcome.com
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="sb.js"></script>
   <script>
-    document.querySelectorAll('.perk-module-toggle').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        btn.closest('.perk-module').classList.toggle('open');
-      });
-    });
+    (async function () {
+      const client = await requireClient();
+      if (!client) return;
+
+      // A client without an active Care Plan shouldn't be looking at this page.
+      if (!client.care_plan_active) {
+        window.location.href = 'customer-portal-standard.html';
+        return;
+      }
+
+      document.getElementById('welcomeHeading').textContent = 'Welcome back, ' + (client.contact_name || client.business_name);
+      document.getElementById('planPrice').textContent = client.care_plan_price;
+      document.getElementById('nextBillingDate').textContent = fmtDate(client.next_billing_date);
+      document.getElementById('nextUpdateDate').textContent = fmtDate(client.next_update_date);
+      document.getElementById('aiUpdateDate').textContent = fmtDate(client.next_update_date);
+
+      const { count } = await sb.from('inquiries')
+        .select('id', { count: 'exact', head: true })
+        .eq('client_id', client.id)
+        .in('type', ['service_request', 'maintenance'])
+        .neq('status', 'completed');
+      document.getElementById('maintenanceCount').textContent = count || 0;
+    })();
   </script>
 
 </body>

@@ -211,25 +211,33 @@
   <section class="consult-form-section">
     <div class="wrap narrow">
       <div class="form-card">
-        <form class="consult-form">
+        <form class="consult-form" id="consultForm">
           <div class="field-row">
             <label>Name
-              <input type="text" placeholder="Jane Smith">
+              <input type="text" id="c-name" placeholder="Jane Smith" required>
             </label>
             <label>Business name
-              <input type="text" placeholder="Smith Plumbing Co.">
+              <input type="text" id="c-business" placeholder="Smith Plumbing Co." required>
+            </label>
+          </div>
+          <div class="field-row">
+            <label>Phone number
+              <input type="tel" id="c-phone" placeholder="(555) 123-4567">
+            </label>
+            <label>Email
+              <input type="email" id="c-email" placeholder="jane@smithplumbing.com" required>
             </label>
           </div>
           <div class="field-row">
             <label>Website
-              <input type="text" placeholder="smithplumbing.com (if you have one)">
+              <input type="text" id="c-website" placeholder="smithplumbing.com (if you have one)">
             </label>
             <label>Years in service
-              <input type="text" placeholder="e.g., 7">
+              <input type="text" id="c-years" placeholder="e.g., 7">
             </label>
           </div>
           <label>Scale of business
-            <select>
+            <select id="c-scale">
               <option value="">Select one</option>
               <option>Just me</option>
               <option>2–5 employees</option>
@@ -239,13 +247,13 @@
             </select>
           </label>
           <label>Main issues today
-            <textarea rows="4" placeholder="What's slowing you down or costing you business right now?"></textarea>
+            <textarea id="c-issues" rows="4" placeholder="What's slowing you down or costing you business right now?"></textarea>
           </label>
           <label>Goal of business in the next 12 months
-            <textarea rows="4" placeholder="Where do you want the business to be a year from now?"></textarea>
+            <textarea id="c-goal" rows="4" placeholder="Where do you want the business to be a year from now?"></textarea>
           </label>
-          <button class="btn" type="button">Submit — $199 consultation</button>
-          <p class="form-note">We'll follow up within 1 business day to schedule your call.</p>
+          <button class="btn" type="submit" id="consultSubmitBtn">Submit — $199 consultation</button>
+          <p class="form-note" id="consultNote">We'll follow up within 1 business day to schedule your call.</p>
         </form>
       </div>
     </div>
@@ -262,6 +270,45 @@
       var isOpen = mobileMenu.classList.toggle('open');
       hamburger.classList.toggle('active', isOpen);
       hamburger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="sb.js"></script>
+  <script>
+    document.getElementById('consultForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('consultSubmitBtn');
+      var name = document.getElementById('c-name').value.trim();
+      var business = document.getElementById('c-business').value.trim();
+      var email = document.getElementById('c-email').value.trim();
+      if (!name || !business || !email) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
+
+      var { error } = await sb.from('inquiries').insert({
+        client_id: null,
+        type: 'consultation',
+        name: name,
+        business_name: business,
+        email: email,
+        phone: document.getElementById('c-phone').value.trim(),
+        website: document.getElementById('c-website').value.trim(),
+        years_in_service: document.getElementById('c-years').value.trim(),
+        business_scale: document.getElementById('c-scale').value,
+        main_issues: document.getElementById('c-issues').value.trim(),
+        business_goal: document.getElementById('c-goal').value.trim()
+      });
+
+      if (!error) {
+        document.getElementById('consultForm').style.display = 'none';
+        document.getElementById('consultNote').textContent = 'Thanks, ' + name + ' — we\'ve got your request and will follow up within 1 business day to schedule your call.';
+      } else {
+        btn.disabled = false;
+        btn.textContent = 'Submit — $199 consultation';
+        document.getElementById('consultNote').textContent = 'Something went wrong submitting that — try again in a moment.';
+      }
     });
   </script>
 

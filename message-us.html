@@ -41,7 +41,13 @@
   .brand .wordmark { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 19px; color: var(--ink); }
   .header-actions { display: flex; align-items: center; gap: 20px; }
   .client-name { font-size: 14px; color: var(--ink-soft); font-weight: 500; }
-  .logout { text-decoration: none; font-size: 14px; color: var(--muted); border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px; }
+  .logout { text-decoration: none; font-size: 14px; color: var(--muted); border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px; cursor: pointer; background: none; font-family: var(--sans); }
+  .btn:disabled { opacity: 0.6; cursor: default; }
+  .success-note {
+    display: none; text-align: center; font-size: 13.5px; color: #4B6A47; background: #EAF0E7;
+    border-radius: 3px; padding: 12px 14px; margin-top: 18px;
+  }
+  .success-note.show { display: block; }
   .logout:hover { border-color: var(--ink); color: var(--ink); }
 
   .portal-nav { background: var(--paper); border-bottom: 1px solid var(--line); }
@@ -100,15 +106,15 @@
         <div class="wordmark">Own the Outcome</div>
       </a>
       <div class="header-actions">
-        <span class="client-name">[Client Business Name]</span>
-        <a class="logout" href="#">Log out</a>
+        <span class="client-name">…</span>
+        <button class="logout" type="button">Log out</button>
       </div>
     </div>
   </header>
 
   <nav class="portal-nav">
     <div class="portal-nav-inner">
-      <a href="customer-portal.html">Dashboard</a>
+      <a href="#" id="dashboardNavLink">Dashboard</a>
       <a href="tool-management.html">Manage Tools</a>
       <a href="refer-and-earn.html">Refer &amp; Earn</a>
       <a href="updates.html">Updates</a>
@@ -123,18 +129,57 @@
 
   <section>
     <div class="card">
-      <form class="msg-form">
+      <form class="msg-form" id="msgForm">
         <label class="field-label" for="msg-body">Your message</label>
-        <textarea class="field-input" id="msg-body" rows="8" placeholder="What's up?"></textarea>
-        <button class="btn" type="button">Send Message</button>
+        <textarea class="field-input" id="msg-body" rows="8" placeholder="What's up?" required></textarea>
+        <button class="btn" type="submit" id="msgSubmitBtn">Send Message</button>
+        <p class="success-note" id="msgSuccess">Sent — a real person will get back to you within a business day.</p>
       </form>
       <p class="form-note">We typically respond within a business day.</p>
     </div>
   </section>
 
   <footer class="portal-footer">
-    OWN THE OUTCOME  ·  Client Portal  ·  [SUPPORT EMAIL]
+    OWN THE OUTCOME  ·  Client Portal  ·  hello@owntheoutcome.com
   </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="sb.js"></script>
+  <script>
+    let currentClient = null;
+
+    (async function () {
+      currentClient = await requireClient();
+      if (!currentClient) return;
+      document.getElementById('dashboardNavLink').href = currentClient.care_plan_active ? 'customer-portal.html' : 'customer-portal-standard.html';
+    })();
+
+    document.getElementById('msgForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (!currentClient) return;
+      const btn = document.getElementById('msgSubmitBtn');
+      const body = document.getElementById('msg-body').value.trim();
+      if (!body) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+
+      const { error } = await sb.from('inquiries').insert({
+        client_id: currentClient.id,
+        type: 'message',
+        body: body,
+        email: currentClient.email,
+        business_name: currentClient.business_name
+      });
+
+      if (!error) {
+        document.getElementById('msgForm').reset();
+        document.getElementById('msgSuccess').classList.add('show');
+      }
+      btn.disabled = false;
+      btn.textContent = 'Send Message';
+    });
+  </script>
 
 </body>
 </html>

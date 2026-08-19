@@ -45,7 +45,13 @@
   .brand .wordmark { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 19px; color: var(--ink); }
   .header-actions { display: flex; align-items: center; gap: 20px; }
   .client-name { font-size: 14px; color: var(--ink-soft); font-weight: 500; }
-  .logout { text-decoration: none; font-size: 14px; color: var(--muted); border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px; }
+  .logout { text-decoration: none; font-size: 14px; color: var(--muted); border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px; cursor: pointer; background: none; font-family: var(--sans); }
+  .invite-form button:disabled { opacity: 0.6; cursor: default; }
+  .success-note {
+    display: none; font-size: 13.5px; color: var(--good); background: var(--good-bg);
+    border-radius: 3px; padding: 12px 14px; margin-top: 16px;
+  }
+  .success-note.show { display: block; }
   .logout:hover { border-color: var(--ink); color: var(--ink); }
 
   .portal-nav { background: var(--paper); border-bottom: 1px solid var(--line); }
@@ -134,15 +140,15 @@
         <div class="wordmark">Own the Outcome</div>
       </a>
       <div class="header-actions">
-        <span class="client-name">[Client Business Name]</span>
-        <a class="logout" href="#">Log out</a>
+        <span class="client-name">…</span>
+        <button class="logout" type="button">Log out</button>
       </div>
     </div>
   </header>
 
   <nav class="portal-nav">
     <div class="portal-nav-inner">
-      <a href="customer-portal.html">Dashboard</a>
+      <a href="#" id="dashboardNavLink">Dashboard</a>
       <a href="tool-management.html">Manage Tools</a>
       <a href="refer-and-earn.html" class="active">Refer &amp; Earn</a>
       <a href="updates.html">Updates</a>
@@ -159,12 +165,13 @@
     <div class="card invite-card">
       <h2 class="section-title" style="margin-bottom:4px;">Send an invite</h2>
       <p class="lead">We'll email them a note from you along with their code.</p>
-      <form class="invite-form">
+      <form class="invite-form" id="inviteForm">
         <label class="field-label" for="ref-email">Their email</label>
-        <input class="field-input" id="ref-email" type="email" placeholder="owner@theirbusiness.com">
+        <input class="field-input" id="ref-email" type="email" placeholder="owner@theirbusiness.com" required>
         <label class="field-label" for="ref-note">A quick note (optional)</label>
         <textarea class="field-input" id="ref-note" rows="3" placeholder="Hey — thought of you when I got this built..."></textarea>
-        <button class="btn-outline primary" type="button">Send Invite</button>
+        <button class="btn-outline primary" type="submit" id="inviteSubmitBtn">Send Invite</button>
+        <p class="success-note" id="inviteSuccess">Invite sent — their code is on its way.</p>
       </form>
 
       <div class="how-it-works">
@@ -186,7 +193,7 @@
 
   <section>
     <h2 class="section-title">Your Referrals</h2>
-    <table class="requests">
+    <table class="requests" id="referralsTable">
       <thead>
         <tr>
           <th>Referred</th>
@@ -195,26 +202,82 @@
           <th>Status</th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
-          <td class="name">[owner@example-business.com]</td>
-          <td class="code">[OWN-4F2K]</td>
-          <td>[Date]</td>
-          <td><span class="req-status progress">Sent</span></td>
-        </tr>
-        <tr>
-          <td class="name">[owner@another-biz.com]</td>
-          <td class="code">[OWN-9XQ1]</td>
-          <td>[Date]</td>
-          <td><span class="req-status done">Reward earned</span></td>
-        </tr>
-      </tbody>
+      <tbody id="referralsBody"></tbody>
     </table>
   </section>
 
   <footer class="portal-footer">
-    OWN THE OUTCOME  ·  Client Portal  ·  [SUPPORT EMAIL]
+    OWN THE OUTCOME  ·  Client Portal  ·  hello@owntheoutcome.com
   </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="sb.js"></script>
+  <script>
+    let currentClient = null;
+
+    function genCode() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let s = '';
+      for (let i = 0; i < 4; i++) s += chars[Math.floor(Math.random() * chars.length)];
+      return 'OWN-' + s;
+    }
+
+    async function loadReferrals() {
+      const { data: refs } = await sb.from('referrals')
+        .select('*').eq('client_id', currentClient.id).order('created_at', { ascending: false });
+
+      const body = document.getElementById('referralsBody');
+      body.innerHTML = '';
+      if (!refs || !refs.length) {
+        document.getElementById('referralsTable').outerHTML = '<div class="empty-note">No referrals sent yet.</div>';
+        return;
+      }
+      refs.forEach(function (r) {
+        const statusClass = r.status === 'reward_earned' ? 'done' : 'progress';
+        const statusLabel = r.status === 'reward_earned' ? 'Reward earned' : 'Sent';
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td class="name">' + escapeHtml(r.referred_email) + '</td>' +
+          '<td class="code">' + escapeHtml(r.code) + '</td>' +
+          '<td>' + fmtDateTime(r.created_at) + '</td>' +
+          '<td><span class="req-status ' + statusClass + '">' + statusLabel + '</span></td>';
+        body.appendChild(tr);
+      });
+    }
+
+    (async function () {
+      currentClient = await requireClient();
+      if (!currentClient) return;
+      document.getElementById('dashboardNavLink').href = currentClient.care_plan_active ? 'customer-portal.html' : 'customer-portal-standard.html';
+      await loadReferrals();
+    })();
+
+    document.getElementById('inviteForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (!currentClient) return;
+      const btn = document.getElementById('inviteSubmitBtn');
+      const email = document.getElementById('ref-email').value.trim();
+      const note = document.getElementById('ref-note').value.trim();
+      if (!email) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+
+      const { error } = await sb.from('referrals').insert({
+        client_id: currentClient.id,
+        referred_email: email,
+        note: note,
+        code: genCode()
+      });
+
+      if (!error) {
+        document.getElementById('inviteForm').reset();
+        document.getElementById('inviteSuccess').classList.add('show');
+        await loadReferrals();
+      }
+      btn.disabled = false;
+      btn.textContent = 'Send Invite';
+    });
+  </script>
 
 </body>
 </html>

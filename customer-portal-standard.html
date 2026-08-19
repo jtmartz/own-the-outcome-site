@@ -50,7 +50,7 @@
   .brand .wordmark { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 19px; color: var(--ink); }
   .header-actions { display: flex; align-items: center; gap: 20px; }
   .client-name { font-size: 14px; color: var(--ink-soft); font-weight: 500; }
-  .logout { text-decoration: none; font-size: 14px; color: var(--muted); border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px; }
+  .logout { text-decoration: none; font-size: 14px; color: var(--muted); border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px; cursor: pointer; background: none; font-family: var(--sans); }
   .logout:hover { border-color: var(--ink); color: var(--ink); }
 
   .portal-nav { background: var(--paper); border-bottom: 1px solid var(--line); }
@@ -147,36 +147,16 @@
   .billing-line { font-size: 15px; color: var(--ink); margin: 0 0 4px; }
   .billing-line strong { font-weight: 600; }
 
-  table.requests { width: 100%; border-collapse: collapse; background: var(--paper); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
-  table.requests th {
-    text-align: left; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
-    font-weight: 600; padding: 14px 20px; border-bottom: 1px solid var(--line); background: var(--cream);
-  }
-  table.requests td { padding: 15px 20px; border-bottom: 1px solid var(--line); font-size: 14.5px; color: var(--ink-soft); vertical-align: top; }
-  table.requests tr:last-child td { border-bottom: none; }
-  table.requests td.name { color: var(--ink); font-weight: 500; }
-  .req-status { display: inline-block; font-size: 11.5px; font-weight: 600; padding: 4px 11px; border-radius: 20px; white-space: nowrap; }
-  .req-status.done { background: var(--good-bg); color: var(--good); }
-  .req-status.progress { background: var(--wait-bg); color: var(--wait); }
-  .update-type {
-    display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
-    color: var(--rust); margin: 0 0 3px;
-  }
-  .update-type.muted { color: var(--muted); }
-  .update-desc { font-size: 14.5px; color: var(--ink); }
-  .no-status { color: var(--muted); }
-
   footer.portal-footer { text-align: center; padding: 32px; font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); margin-top: 40px; }
 
   @media (max-width: 780px) {
     .actions-row { grid-template-columns: 1fr; }
-    table.requests { display: block; overflow-x: auto; }
   }
 </style>
 </head>
 <body>
 
-  <div class="badge-note">Visual preview only — this is the portal view for a client WITHOUT a Care Plan (compare to customer-portal.html)</div>
+  <div class="badge-note">Client Portal — live data from your account.</div>
 
   <header class="site">
     <div class="header-inner">
@@ -189,8 +169,8 @@
         <div class="wordmark">Own the Outcome</div>
       </a>
       <div class="header-actions">
-        <span class="client-name">[Client Business Name]</span>
-        <a class="logout" href="#">Log out</a>
+        <span class="client-name">…</span>
+        <button class="logout" type="button">Log out</button>
       </div>
     </div>
   </header>
@@ -206,7 +186,7 @@
 
   <div class="page-head">
     <p class="eyebrow">Client Portal</p>
-    <h1>Welcome back, [First Name]</h1>
+    <h1 id="welcomeHeading">Welcome back</h1>
     <p>Everything about your build, in one place.</p>
   </div>
 
@@ -244,14 +224,32 @@
           <li><span class="dot"></span> Maintenance requests — monitoring &amp; small fixes, on us</li>
           <li><span class="dot"></span> 20% off new tools and integration solutions</li>
         </ul>
-        <a class="btn-outline primary" href="#" style="margin-top:16px;">Subscribe — from $99/mo</a>
+        <a class="btn-outline primary" href="#" style="margin-top:16px;">Subscribe — from $<span id="planPriceStd">99</span>/mo</a>
       </div>
     </div>
   </section>
 
   <footer class="portal-footer">
-    OWN THE OUTCOME  ·  Client Portal  ·  [SUPPORT EMAIL]
+    OWN THE OUTCOME  ·  Client Portal  ·  hello@owntheoutcome.com
   </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="sb.js"></script>
+  <script>
+    (async function () {
+      const client = await requireClient();
+      if (!client) return;
+
+      // An active Care Plan subscriber belongs on the other dashboard.
+      if (client.care_plan_active) {
+        window.location.href = 'customer-portal.html';
+        return;
+      }
+
+      document.getElementById('welcomeHeading').textContent = 'Welcome back, ' + (client.contact_name || client.business_name);
+      document.getElementById('planPriceStd').textContent = client.care_plan_price;
+    })();
+  </script>
 
 </body>
 </html>

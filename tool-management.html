@@ -47,7 +47,7 @@
   .brand .wordmark { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 19px; color: var(--ink); }
   .header-actions { display: flex; align-items: center; gap: 20px; }
   .client-name { font-size: 14px; color: var(--ink-soft); font-weight: 500; }
-  .logout { text-decoration: none; font-size: 14px; color: var(--muted); border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px; }
+  .logout { text-decoration: none; font-size: 14px; color: var(--muted); border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px; cursor: pointer; background: none; font-family: var(--sans); }
   .logout:hover { border-color: var(--ink); color: var(--ink); }
 
   .portal-nav { background: var(--paper); border-bottom: 1px solid var(--line); }
@@ -119,15 +119,15 @@
         <div class="wordmark">Own the Outcome</div>
       </a>
       <div class="header-actions">
-        <span class="client-name">[Client Business Name]</span>
-        <a class="logout" href="#">Log out</a>
+        <span class="client-name">…</span>
+        <button class="logout" type="button">Log out</button>
       </div>
     </div>
   </header>
 
   <nav class="portal-nav">
     <div class="portal-nav-inner">
-      <a href="customer-portal.html">Dashboard</a>
+      <a href="#" id="dashboardNavLink">Dashboard</a>
       <a href="tool-management.html" class="active">Manage Tools</a>
       <a href="refer-and-earn.html">Refer &amp; Earn</a>
       <a href="updates.html">Updates</a>
@@ -141,53 +141,8 @@
   </div>
 
   <section>
-    <div class="tool-list">
-      <div class="tool-card">
-        <div class="tool-card-top">
-          <div>
-            <span class="tag">Lead &amp; follow-up</span>
-            <h3>[Missed-Call Text-Back System]</h3>
-            <p class="meta">Live since [Month Year]</p>
-          </div>
-          <span class="status-pill">Live</span>
-        </div>
-        <p class="desc">[Short description of the tool, what it does, and how it fits into their day-to-day.]</p>
-        <div class="tool-actions">
-          <a class="btn-outline primary" href="#">Request an Update</a>
-          <a class="btn-outline" href="#">View Documentation</a>
-        </div>
-      </div>
-
-      <div class="tool-card">
-        <div class="tool-card-top">
-          <div>
-            <span class="tag">Booking &amp; scheduling</span>
-            <h3>[Automated Reminder System]</h3>
-            <p class="meta">Live since [Month Year]</p>
-          </div>
-          <span class="status-pill">Live</span>
-        </div>
-        <p class="desc">[Short description of the second tool.]</p>
-        <div class="tool-actions">
-          <a class="btn-outline primary" href="#">Request an Update</a>
-          <a class="btn-outline" href="#">View Documentation</a>
-        </div>
-      </div>
-
-      <div class="tool-card">
-        <div class="tool-card-top">
-          <div>
-            <span class="tag">Quoting &amp; estimating</span>
-            <h3>[Third tool, in progress]</h3>
-            <p class="meta">Requested [Date]</p>
-          </div>
-          <span class="status-pill progress">Building</span>
-        </div>
-        <p class="desc">[Short description — currently being built, not live yet.]</p>
-        <div class="tool-actions">
-          <a class="btn-outline" href="#">View Details</a>
-        </div>
-      </div>
+    <div class="tool-list" id="toolList">
+      <p class="meta" id="toolsEmptyNote" style="display:none;">No tools on file yet — once we start building something for you, it'll show up here.</p>
 
       <div class="add-tool-card">
         <h3>Want another tool built?</h3>
@@ -198,8 +153,58 @@
   </section>
 
   <footer class="portal-footer">
-    OWN THE OUTCOME  ·  Client Portal  ·  [SUPPORT EMAIL]
+    OWN THE OUTCOME  ·  Client Portal  ·  hello@owntheoutcome.com
   </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="sb.js"></script>
+  <script>
+    function toolCardHTML(t) {
+      var statusClass = t.status === 'live' ? '' : (t.status === 'building' ? 'progress' : 'paused');
+      var statusLabel = t.status === 'live' ? 'Live' : (t.status === 'building' ? 'Building' : 'Paused');
+      var metaLine = t.status === 'live'
+        ? ('Live since ' + fmtDate(t.live_since))
+        : (t.status === 'building' ? 'In progress' : 'Paused');
+      var actions = t.status === 'live'
+        ? ('<a class="btn-outline primary" href="request-service.html">Request an Update</a>' +
+           (t.documentation_url ? '<a class="btn-outline" href="' + escapeHtml(t.documentation_url) + '" target="_blank" rel="noopener">View Documentation</a>' : ''))
+        : '<a class="btn-outline" href="updates.html">View Details</a>';
+
+      return '<div class="tool-card">' +
+        '<div class="tool-card-top"><div>' +
+          (t.category ? '<span class="tag">' + escapeHtml(t.category) + '</span>' : '') +
+          '<h3>' + escapeHtml(t.name) + '</h3>' +
+          '<p class="meta">' + metaLine + '</p>' +
+        '</div><span class="status-pill ' + statusClass + '">' + statusLabel + '</span></div>' +
+        (t.description ? '<p class="desc">' + escapeHtml(t.description) + '</p>' : '') +
+        '<div class="tool-actions">' + actions + '</div>' +
+      '</div>';
+    }
+
+    (async function () {
+      const client = await requireClient();
+      if (!client) return;
+
+      document.getElementById('dashboardNavLink').href = client.care_plan_active ? 'customer-portal.html' : 'customer-portal-standard.html';
+
+      const { data: tools } = await sb.from('tools')
+        .select('*')
+        .eq('client_id', client.id)
+        .order('created_at', { ascending: true });
+
+      const list = document.getElementById('toolList');
+      const addCard = list.querySelector('.add-tool-card');
+      if (!tools || tools.length === 0) {
+        document.getElementById('toolsEmptyNote').style.display = 'block';
+      } else {
+        tools.forEach(function (t) {
+          const div = document.createElement('div');
+          div.innerHTML = toolCardHTML(t);
+          list.insertBefore(div.firstChild, addCard);
+        });
+      }
+    })();
+  </script>
 
 </body>
 </html>

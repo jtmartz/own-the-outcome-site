@@ -45,7 +45,7 @@
   .brand .wordmark { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 19px; color: var(--ink); }
   .header-actions { display: flex; align-items: center; gap: 20px; }
   .client-name { font-size: 14px; color: var(--ink-soft); font-weight: 500; }
-  .logout { text-decoration: none; font-size: 14px; color: var(--muted); border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px; }
+  .logout { text-decoration: none; font-size: 14px; color: var(--muted); border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px; cursor: pointer; background: none; font-family: var(--sans); }
   .logout:hover { border-color: var(--ink); color: var(--ink); }
 
   .portal-nav { background: var(--paper); border-bottom: 1px solid var(--line); }
@@ -129,15 +129,15 @@
         <div class="wordmark">Own the Outcome</div>
       </a>
       <div class="header-actions">
-        <span class="client-name">[Client Business Name]</span>
-        <a class="logout" href="#">Log out</a>
+        <span class="client-name">…</span>
+        <button class="logout" type="button">Log out</button>
       </div>
     </div>
   </header>
 
   <nav class="portal-nav">
     <div class="portal-nav-inner">
-      <a href="customer-portal.html">Dashboard</a>
+      <a href="#" id="dashboardNavLink">Dashboard</a>
       <a href="tool-management.html">Manage Tools</a>
       <a href="refer-and-earn.html">Refer &amp; Earn</a>
       <a href="updates.html" class="active">Updates</a>
@@ -150,24 +150,24 @@
     <p>Builds in progress, open requests, and everything else worth knowing about — in one place.</p>
   </div>
 
-  <section>
+  <section id="inProgressSection">
     <h2 class="section-title">In Progress</h2>
-    <div class="card">
+    <div class="card" id="inProgressCard">
       <div class="progress-top">
         <div>
-          <span class="tag">Quoting &amp; estimating</span>
-          <h3>[Third tool, in progress]</h3>
+          <span class="tag" id="progressTag">—</span>
+          <h3 id="progressName">—</h3>
         </div>
-        <span class="progress-pct">65%</span>
+        <span class="progress-pct" id="progressPct">0%</span>
       </div>
-      <div class="progress-track"><div class="progress-fill" style="width:65%;"></div></div>
-      <p class="progress-note">Estimated completion: [Month] [Day]</p>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%;"></div></div>
+      <p class="progress-note" id="progressNote">—</p>
     </div>
   </section>
 
   <section>
     <h2 class="section-title">Service Requests</h2>
-    <table class="requests">
+    <table class="requests" id="requestsTable">
       <thead>
         <tr>
           <th>Request</th>
@@ -175,51 +175,88 @@
           <th>Status</th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
-          <td class="name">[Add SMS reminders to booking flow]</td>
-          <td>[Date]</td>
-          <td><span class="req-status progress">In progress</span></td>
-        </tr>
-        <tr>
-          <td class="name">[Update FAQ chatbot answers]</td>
-          <td>[Date]</td>
-          <td><span class="req-status done">Completed</span></td>
-        </tr>
-      </tbody>
+      <tbody id="requestsBody"></tbody>
     </table>
   </section>
 
   <section>
     <h2 class="section-title">Activity</h2>
-    <ul class="activity-list">
-      <li>
-        <span class="activity-dot"></span>
-        <div>
-          <p class="activity-text">Your monthly performance report is ready to view.</p>
-          <p class="activity-date">[Date]</p>
-        </div>
-      </li>
-      <li>
-        <span class="activity-dot"></span>
-        <div>
-          <p class="activity-text">Your tool went live.</p>
-          <p class="activity-date">[Date]</p>
-        </div>
-      </li>
-      <li>
-        <span class="activity-dot"></span>
-        <div>
-          <p class="activity-text">Your Care Plan renewed for another month.</p>
-          <p class="activity-date">[Date]</p>
-        </div>
-      </li>
-    </ul>
+    <ul class="activity-list" id="activityList"></ul>
   </section>
 
   <footer class="portal-footer">
-    OWN THE OUTCOME  ·  Client Portal  ·  [SUPPORT EMAIL]
+    OWN THE OUTCOME  ·  Client Portal  ·  hello@owntheoutcome.com
   </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="sb.js"></script>
+  <script>
+    const REQ_TYPE_LABEL = { service_request: 'Service request', maintenance: 'Maintenance request' };
+
+    (async function () {
+      const client = await requireClient();
+      if (!client) return;
+
+      document.getElementById('dashboardNavLink').href = client.care_plan_active ? 'customer-portal.html' : 'customer-portal-standard.html';
+
+      // In progress tool
+      const { data: buildingTools } = await sb.from('tools')
+        .select('*').eq('client_id', client.id).eq('status', 'building')
+        .order('created_at', { ascending: false }).limit(1);
+
+      if (buildingTools && buildingTools.length) {
+        const t = buildingTools[0];
+        document.getElementById('progressTag').textContent = t.category || 'In progress';
+        document.getElementById('progressName').textContent = t.name;
+        const pct = t.progress_pct != null ? t.progress_pct : 0;
+        document.getElementById('progressPct').textContent = pct + '%';
+        document.getElementById('progressFill').style.width = pct + '%';
+        document.getElementById('progressNote').textContent = t.live_since
+          ? ('Estimated completion: ' + fmtDate(t.live_since))
+          : 'No estimated date yet — we\'ll update this as we go.';
+      } else {
+        document.getElementById('inProgressCard').outerHTML = '<div class="empty-note">Nothing in progress right now.</div>';
+      }
+
+      // Service requests (service_request + maintenance)
+      const { data: reqs } = await sb.from('inquiries')
+        .select('*').eq('client_id', client.id).in('type', ['service_request', 'maintenance'])
+        .order('created_at', { ascending: false });
+
+      if (!reqs || !reqs.length) {
+        document.getElementById('requestsTable').outerHTML = '<div class="empty-note">No service requests yet — submit one any time from Request a Service.</div>';
+      } else {
+        const body = document.getElementById('requestsBody');
+        reqs.forEach(function (r) {
+          const statusClass = r.status === 'completed' ? 'done' : 'progress';
+          const statusLabel = r.status === 'completed' ? 'Completed' : (r.status === 'in_progress' ? 'In progress' : 'New');
+          const label = r.want || r.body || REQ_TYPE_LABEL[r.type] || 'Request';
+          const tr = document.createElement('tr');
+          tr.innerHTML = '<td class="name">' + escapeHtml(label) + '</td>' +
+            '<td>' + fmtDateTime(r.created_at) + '</td>' +
+            '<td><span class="req-status ' + statusClass + '">' + statusLabel + '</span></td>';
+          body.appendChild(tr);
+        });
+      }
+
+      // Activity feed
+      const { data: acts } = await sb.from('activity')
+        .select('*').eq('client_id', client.id).order('created_at', { ascending: false });
+
+      if (!acts || !acts.length) {
+        document.getElementById('activityList').outerHTML = '<div class="empty-note">No activity yet.</div>';
+      } else {
+        const list = document.getElementById('activityList');
+        acts.forEach(function (a) {
+          const li = document.createElement('li');
+          li.innerHTML = '<span class="activity-dot"></span><div>' +
+            '<p class="activity-text">' + escapeHtml(a.text) + '</p>' +
+            '<p class="activity-date">' + fmtDateTime(a.created_at) + '</p></div>';
+          list.appendChild(li);
+        });
+      }
+    })();
+  </script>
 
 </body>
 </html>
