@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Updates — Own the Outcome</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='100' fill='%23201F1B'/%3E%3Ctext x='100' y='128' font-family='Georgia,serif' font-style='italic' font-weight='500' font-size='82' fill='%23FBF8F2' text-anchor='middle'%3EO%3Ctspan fill='%23DD7A45' font-family='Arial,sans-serif' font-style='normal' font-weight='700' font-size='62'%3Eo%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF8F2;
+    --paper: #FFFFFF;
+    --ink: #201F1B;
+    --ink-soft: #47453E;
+    --muted: #7A776C;
+    --line: #E6E0D2;
+    --rust: #B14A2C;
+    --good: #4B6A47;
+    --good-bg: #EAF0E7;
+    --wait-bg: #F7EFDD;
+    --wait: #92702B;
+    --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: var(--sans); color: var(--ink-soft); line-height: 1.6;
+    background: var(--cream); -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  .badge-note {
+    text-align: center; font-size: 12.5px; color: var(--muted); background: #F1ECE0;
+    border-bottom: 1px solid var(--line); padding: 8px 16px;
+  }
+
+  header.site { background: var(--paper); border-bottom: 1px solid var(--line); }
+  .header-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 32px; max-width: 1080px; margin: 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .brand .mark { width: 36px; height: 36px; flex: none; }
+  .brand .wordmark { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 19px; color: var(--ink); }
+  .header-actions { display: flex; align-items: center; gap: 20px; }
+  .client-name { font-size: 14px; color: var(--ink-soft); font-weight: 500; }
+  .logout { text-decoration: none; font-size: 14px; color: var(--muted); border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px; }
+  .logout:hover { border-color: var(--ink); color: var(--ink); }
+
+  .portal-nav { background: var(--paper); border-bottom: 1px solid var(--line); }
+  .portal-nav-inner { display: flex; gap: 28px; max-width: 1080px; margin: 0 auto; padding: 0 32px; }
+  .portal-nav a {
+    text-decoration: none; font-size: 14px; font-weight: 500; color: var(--muted);
+    padding: 14px 0; border-bottom: 2px solid transparent; display: inline-block;
+  }
+  .portal-nav a:hover { color: var(--ink); }
+  .portal-nav a.active { color: var(--ink); border-color: var(--rust); }
+
+  .page-head { padding: 48px 32px 8px; max-width: 1080px; margin: 0 auto; }
+  .page-head .eyebrow {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--rust); margin: 0 0 12px;
+  }
+  .page-head h1 { font-family: var(--serif); font-weight: 500; font-size: 34px; color: var(--ink); margin: 0 0 6px; letter-spacing: -0.01em; }
+  .page-head p { color: var(--muted); margin: 0; font-size: 15.5px; }
+
+  section { padding: 20px 32px 0; max-width: 1080px; margin: 0 auto; }
+  section:last-of-type { padding-bottom: 60px; }
+  .section-title {
+    font-family: var(--serif); font-weight: 500; font-size: 22px; color: var(--ink); margin: 0 0 16px; letter-spacing: -0.01em;
+  }
+
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 26px 28px; }
+  .card + .card { margin-top: 16px; }
+
+  /* progress card */
+  .progress-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .progress-top .tag {
+    display: inline-block; font-size: 11px; font-weight: 600; color: var(--rust);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
+  }
+  .progress-top h3 { font-family: var(--serif); font-weight: 600; font-size: 18px; margin: 0; color: var(--ink); }
+  .progress-pct { font-family: var(--serif); font-weight: 600; font-size: 20px; color: var(--rust); white-space: nowrap; }
+  .progress-track { height: 8px; background: var(--line); border-radius: 20px; overflow: hidden; margin: 16px 0 8px; }
+  .progress-fill { height: 100%; background: var(--rust); border-radius: 20px; }
+  .progress-note { font-size: 13px; color: var(--muted); margin: 0; }
+
+  /* activity list */
+  .activity-list { list-style: none; margin: 0; padding: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 4px; }
+  .activity-list li { display: flex; gap: 14px; padding: 18px 22px; border-bottom: 1px solid var(--line); }
+  .activity-list li:last-child { border-bottom: none; }
+  .activity-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rust); flex: none; margin-top: 6px; }
+  .activity-text { font-size: 14.5px; color: var(--ink); margin: 0 0 3px; }
+  .activity-date { font-size: 12.5px; color: var(--muted); margin: 0; }
+
+  table.requests { width: 100%; border-collapse: collapse; background: var(--paper); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+  table.requests th {
+    text-align: left; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+    font-weight: 600; padding: 14px 20px; border-bottom: 1px solid var(--line); background: var(--cream);
+  }
+  table.requests td { padding: 15px 20px; border-bottom: 1px solid var(--line); font-size: 14.5px; color: var(--ink-soft); vertical-align: top; }
+  table.requests tr:last-child td { border-bottom: none; }
+  table.requests td.name { color: var(--ink); font-weight: 500; }
+  .req-status { display: inline-block; font-size: 11.5px; font-weight: 600; padding: 4px 11px; border-radius: 20px; white-space: nowrap; }
+  .req-status.done { background: var(--good-bg); color: var(--good); }
+  .req-status.progress { background: var(--wait-bg); color: var(--wait); }
+
+  .empty-note { text-align: center; padding: 28px 20px; color: var(--muted); font-size: 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 4px; }
+
+  footer.portal-footer { text-align: center; padding: 32px; font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); margin-top: 40px; }
+
+  @media (max-width: 780px) {
+    table.requests { display: block; overflow-x: auto; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="badge-note">Visual preview only — this portal isn't wired up to real accounts or data yet.</div>
+
+  <header class="site">
+    <div class="header-inner">
+      <a class="brand" href="index.html">
+        <svg class="mark" viewBox="0 0 200 200" aria-hidden="true">
+          <circle cx="100" cy="100" r="94" fill="#14130F"/>
+          <circle cx="100" cy="100" r="95" fill="none" stroke="#FBF8F2" stroke-width="6" opacity="0.9"/>
+          <text x="100" y="138" font-family="Fraunces" font-style="italic" font-weight="500" font-size="114" fill="#FBF8F2" text-anchor="middle">O<tspan fill="#DD7A45" font-family="Inter" font-style="normal" font-weight="700" font-size="86">o</tspan></text>
+        </svg>
+        <div class="wordmark">Own the Outcome</div>
+      </a>
+      <div class="header-actions">
+        <span class="client-name">[Client Business Name]</span>
+        <a class="logout" href="#">Log out</a>
+      </div>
+    </div>
+  </header>
+
+  <nav class="portal-nav">
+    <div class="portal-nav-inner">
+      <a href="customer-portal.html">Dashboard</a>
+      <a href="tool-management.html">Manage Tools</a>
+      <a href="refer-and-earn.html">Refer &amp; Earn</a>
+      <a href="updates.html" class="active">Updates</a>
+    </div>
+  </nav>
+
+  <div class="page-head">
+    <p class="eyebrow">Updates</p>
+    <h1>What's going on across your account</h1>
+    <p>Builds in progress, open requests, and everything else worth knowing about — in one place.</p>
+  </div>
+
+  <section>
+    <h2 class="section-title">In Progress</h2>
+    <div class="card">
+      <div class="progress-top">
+        <div>
+          <span class="tag">Quoting &amp; estimating</span>
+          <h3>[Third tool, in progress]</h3>
+        </div>
+        <span class="progress-pct">65%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:65%;"></div></div>
+      <p class="progress-note">Estimated completion: [Month] [Day]</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Service Requests</h2>
+    <table class="requests">
+      <thead>
+        <tr>
+          <th>Request</th>
+          <th>Submitted</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="name">[Add SMS reminders to booking flow]</td>
+          <td>[Date]</td>
+          <td><span class="req-status progress">In progress</span></td>
+        </tr>
+        <tr>
+          <td class="name">[Update FAQ chatbot answers]</td>
+          <td>[Date]</td>
+          <td><span class="req-status done">Completed</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2 class="section-title">Activity</h2>
+    <ul class="activity-list">
+      <li>
+        <span class="activity-dot"></span>
+        <div>
+          <p class="activity-text">Your monthly performance report is ready to view.</p>
+          <p class="activity-date">[Date]</p>
+        </div>
+      </li>
+      <li>
+        <span class="activity-dot"></span>
+        <div>
+          <p class="activity-text">Your tool went live.</p>
+          <p class="activity-date">[Date]</p>
+        </div>
+      </li>
+      <li>
+        <span class="activity-dot"></span>
+        <div>
+          <p class="activity-text">Your Care Plan renewed for another month.</p>
+          <p class="activity-date">[Date]</p>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <footer class="portal-footer">
+    OWN THE OUTCOME  ·  Client Portal  ·  [SUPPORT EMAIL]
+  </footer>
+
+</body>
+</html>
