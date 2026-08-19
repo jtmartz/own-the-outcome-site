@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Account Settings — Own the Outcome</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='100' fill='%23201F1B'/%3E%3Ctext x='100' y='128' font-family='Georgia,serif' font-style='italic' font-weight='500' font-size='82' fill='%23FBF8F2' text-anchor='middle'%3EO%3Ctspan fill='%23DD7A45' font-family='Arial,sans-serif' font-style='normal' font-weight='700' font-size='62'%3Eo%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF8F2; --paper: #FFFFFF; --ink: #201F1B; --ink-soft: #47453E; --muted: #7A776C;
+    --line: #E6E0D2; --rust: #B14A2C; --good: #4B6A47; --good-bg: #EAF0E7;
+    --bad: #B14A2C; --bad-bg: #F7E9E4;
+    --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--sans); color: var(--ink-soft); line-height: 1.6; background: var(--cream); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+
+  header.site { background: var(--paper); border-bottom: 1px solid var(--line); }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 20px 32px; max-width: 1080px; margin: 0 auto; }
+  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .brand .mark { width: 36px; height: 36px; flex: none; }
+  .brand .wordmark { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 19px; color: var(--ink); }
+  .header-actions { display: flex; align-items: center; gap: 20px; }
+  .client-name { font-size: 14px; color: var(--ink-soft); font-weight: 500; }
+  .logout { text-decoration: none; font-size: 14px; color: var(--muted); border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px; cursor: pointer; background: none; font-family: var(--sans); }
+  .logout:hover { border-color: var(--ink); color: var(--ink); }
+
+  .portal-nav { background: var(--paper); border-bottom: 1px solid var(--line); }
+  .portal-nav-inner { display: flex; gap: 28px; max-width: 1080px; margin: 0 auto; padding: 0 32px; }
+  .portal-nav a { text-decoration: none; font-size: 14px; font-weight: 500; color: var(--muted); padding: 14px 0; border-bottom: 2px solid transparent; display: inline-block; }
+  .portal-nav a:hover { color: var(--ink); }
+  .portal-nav a.active { color: var(--ink); border-color: var(--rust); }
+
+  .page-head { padding: 48px 32px 8px; max-width: 640px; margin: 0 auto; }
+  .page-head .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--rust); margin: 0 0 12px; }
+  .page-head h1 { font-family: var(--serif); font-weight: 500; font-size: 30px; color: var(--ink); margin: 0 0 6px; letter-spacing: -0.01em; }
+  .page-head p { color: var(--muted); margin: 0; font-size: 15.5px; }
+
+  section { padding: 32px 32px 90px; max-width: 640px; margin: 0 auto; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 32px; }
+  .card + .card { margin-top: 18px; }
+  .card h2 { font-family: var(--serif); font-weight: 600; font-size: 18px; color: var(--ink); margin: 0 0 4px; }
+  .card .card-sub { font-size: 13.5px; color: var(--muted); margin: 0 0 20px; }
+
+  .field-label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-soft); margin: 0 0 6px; }
+  .field-label:not(:first-child) { margin-top: 18px; }
+  .field-input {
+    width: 100%; font-family: var(--sans); font-size: 14.5px; color: var(--ink);
+    background: var(--cream); border: 1px solid var(--line); border-radius: 3px; padding: 12px 14px;
+  }
+  .field-input:focus { outline: none; border-color: var(--rust); }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--ink); color: var(--cream); padding: 12px 22px; border-radius: 3px;
+    text-decoration: none; font-weight: 600; font-size: 14.5px; border: 1px solid var(--ink);
+    cursor: pointer; font-family: var(--sans); margin-top: 22px;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .btn:hover { background: var(--rust); border-color: var(--rust); }
+  .btn:disabled { opacity: 0.6; cursor: default; }
+
+  .note { display: none; font-size: 13.5px; border-radius: 3px; padding: 10px 14px; margin-top: 16px; }
+  .note.show { display: block; }
+  .note.good { color: var(--good); background: var(--good-bg); }
+  .note.bad { color: var(--bad); background: var(--bad-bg); }
+
+  footer.portal-footer { text-align: center; padding: 32px; font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); }
+</style>
+</head>
+<body>
+
+  <header class="site">
+    <div class="header-inner">
+      <a class="brand" href="index.html">
+        <svg class="mark" viewBox="0 0 200 200" aria-hidden="true">
+          <circle cx="100" cy="100" r="94" fill="#14130F"/>
+          <circle cx="100" cy="100" r="95" fill="none" stroke="#FBF8F2" stroke-width="6" opacity="0.9"/>
+          <text x="100" y="138" font-family="Fraunces" font-style="italic" font-weight="500" font-size="114" fill="#FBF8F2" text-anchor="middle">O<tspan fill="#DD7A45" font-family="Inter" font-style="normal" font-weight="700" font-size="86">o</tspan></text>
+        </svg>
+        <div class="wordmark">Own the Outcome</div>
+      </a>
+      <div class="header-actions">
+        <span class="client-name">…</span>
+        <button class="logout" type="button">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="portal-nav">
+    <div class="portal-nav-inner">
+      <a href="#" id="dashboardNavLink">Dashboard</a>
+      <a href="tool-management.html">Manage Tools</a>
+      <a href="refer-and-earn.html">Refer &amp; Earn</a>
+      <a href="updates.html">Updates</a>
+      <a href="account.html" class="active">Account</a>
+    </div>
+  </nav>
+
+  <div class="page-head">
+    <p class="eyebrow">Account Settings</p>
+    <h1>Your login</h1>
+    <p>Update the email or password you use to sign in.</p>
+  </div>
+
+  <section>
+    <div class="card">
+      <h2>Change email</h2>
+      <p class="card-sub">This is also your username — you'll use it to log in from now on.</p>
+      <form id="emailForm">
+        <label class="field-label" for="new-email">New email</label>
+        <input class="field-input" id="new-email" type="email" required>
+        <button class="btn" type="submit" id="emailBtn">Update Email</button>
+        <p class="note" id="emailNote"></p>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Change password</h2>
+      <p class="card-sub">Choose a new password for your account.</p>
+      <form id="passwordForm">
+        <label class="field-label" for="new-password">New password</label>
+        <input class="field-input" id="new-password" type="password" autocomplete="new-password" required minlength="6">
+        <label class="field-label" for="confirm-password">Confirm new password</label>
+        <input class="field-input" id="confirm-password" type="password" autocomplete="new-password" required minlength="6">
+        <button class="btn" type="submit" id="passwordBtn">Update Password</button>
+        <p class="note" id="passwordNote"></p>
+      </form>
+    </div>
+  </section>
+
+  <footer class="portal-footer">
+    OWN THE OUTCOME  ·  Client Portal  ·  hello@owntheoutcome.com
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="sb.js"></script>
+  <script>
+    (async function () {
+      const client = await requireClient();
+      if (!client) return;
+      document.getElementById('dashboardNavLink').href = client.care_plan_active ? 'customer-portal.html' : 'customer-portal-standard.html';
+      document.getElementById('new-email').value = client.email || '';
+    })();
+
+    document.getElementById('emailForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const btn = document.getElementById('emailBtn');
+      const note = document.getElementById('emailNote');
+      note.className = 'note';
+      const newEmail = document.getElementById('new-email').value.trim();
+      if (!newEmail) return;
+
+      btn.disabled = true; btn.textContent = 'Updating…';
+
+      const { error } = await sb.auth.updateUser({ email: newEmail });
+      if (error) {
+        note.textContent = 'Could not update email: ' + error.message;
+        note.classList.add('show', 'bad');
+      } else {
+        await sb.from('clients').update({ email: newEmail }).eq('id', (await sb.auth.getUser()).data.user.id);
+        note.textContent = 'Check your inbox — Supabase may send a confirmation link to finish the email change before it takes effect.';
+        note.classList.add('show', 'good');
+      }
+      btn.disabled = false; btn.textContent = 'Update Email';
+    });
+
+    document.getElementById('passwordForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const btn = document.getElementById('passwordBtn');
+      const note = document.getElementById('passwordNote');
+      note.className = 'note';
+      const pw = document.getElementById('new-password').value;
+      const pw2 = document.getElementById('confirm-password').value;
+
+      if (pw !== pw2) {
+        note.textContent = "Passwords don't match.";
+        note.classList.add('show', 'bad');
+        return;
+      }
+
+      btn.disabled = true; btn.textContent = 'Updating…';
+
+      const { error } = await sb.auth.updateUser({ password: pw });
+      if (error) {
+        note.textContent = 'Could not update password: ' + error.message;
+        note.classList.add('show', 'bad');
+      } else {
+        note.textContent = 'Password updated.';
+        note.classList.add('show', 'good');
+        document.getElementById('passwordForm').reset();
+      }
+      btn.disabled = false; btn.textContent = 'Update Password';
+    });
+  </script>
+
+</body>
+</html>

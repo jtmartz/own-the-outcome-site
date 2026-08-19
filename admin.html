@@ -176,21 +176,22 @@
         <div><label class="field-label">Contact name</label><input class="field-input" id="nc-contact"></div>
       </div>
       <div class="field-grid">
-        <div><label class="field-label">Email (their login)</label><input class="field-input" id="nc-email" type="email"></div>
+        <div><label class="field-label">Email (their eventual login)</label><input class="field-input" id="nc-email" type="email"></div>
         <div><label class="field-label">Phone</label><input class="field-input" id="nc-phone" type="tel"></div>
       </div>
       <div class="field-grid">
-        <div><label class="field-label">Temporary password</label><input class="field-input" id="nc-password" placeholder="Give this to the client"></div>
         <div><label class="field-label">Care Plan price ($/mo)</label><input class="field-input" id="nc-price" type="number" value="99"></div>
+        <div class="checkbox-row" style="margin-top: 24px;"><input type="checkbox" id="nc-active"><label for="nc-active">Care Plan active</label></div>
       </div>
-      <div class="checkbox-row">
-        <input type="checkbox" id="nc-active"><label for="nc-active">Care Plan active</label>
-      </div>
-      <button class="btn" id="nc-submit" type="button">Create Client</button>
+      <button class="btn" id="nc-submit" type="button">Generate Company Code</button>
       <button class="btn-text-muted" id="nc-cancel" type="button" style="margin-left:14px;">Cancel</button>
       <p class="empty-note" id="nc-error" style="display:none; color:var(--bad); padding: 10px 0 0;"></p>
     </div>
 
+    <h4 class="subsection-title" id="pendingTitle" style="display:none;">Pending invites — waiting on the client to redeem their code</h4>
+    <div id="pendingList"></div>
+
+    <h4 class="subsection-title">Clients</h4>
     <div id="clientsList"></div>
   </main>
 
@@ -248,6 +249,13 @@
       document.getElementById('addClientForm').style.display = 'none';
     });
 
+    function genLoginCode() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = 'OWN-';
+      for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
+      return code;
+    }
+
     document.getElementById('nc-submit').addEventListener('click', async function () {
       const errEl = document.getElementById('nc-error');
       errEl.style.display = 'none';
@@ -255,52 +263,69 @@
       const contact = document.getElementById('nc-contact').value.trim();
       const email = document.getElementById('nc-email').value.trim();
       const phone = document.getElementById('nc-phone').value.trim();
-      const password = document.getElementById('nc-password').value;
       const price = parseFloat(document.getElementById('nc-price').value) || 99;
       const active = document.getElementById('nc-active').checked;
 
-      if (!business || !email || !password || password.length < 6) {
-        errEl.textContent = 'Business name, email, and a password of at least 6 characters are required.';
+      if (!business || !email) {
+        errEl.textContent = 'Business name and email are required.';
         errEl.style.display = 'block';
         return;
       }
 
       const btn = document.getElementById('nc-submit');
-      btn.disabled = true; btn.textContent = 'Creating…';
+      btn.disabled = true; btn.textContent = 'Generating…';
 
-      const { data, error } = await sbCreate.auth.signUp({ email: email, password: password });
-
-      if (error || !data.user) {
-        errEl.textContent = error ? error.message : 'Could not create that login — try again.';
-        errEl.style.display = 'block';
-        btn.disabled = false; btn.textContent = 'Create Client';
-        return;
-      }
-
-      const { error: insertErr } = await sb.from('clients').insert({
-        id: data.user.id,
+      const code = genLoginCode();
+      const { error: insertErr } = await sb.from('pending_clients').insert({
         business_name: business,
         contact_name: contact,
         email: email,
         phone: phone,
         care_plan_active: active,
-        care_plan_price: price
+        care_plan_price: price,
+        login_code: code
       });
 
-      btn.disabled = false; btn.textContent = 'Create Client';
+      btn.disabled = false; btn.textContent = 'Generate Company Code';
 
       if (insertErr) {
-        errEl.textContent = 'Login was created, but saving the client record failed: ' + insertErr.message;
+        errEl.textContent = 'Could not create the invite: ' + insertErr.message;
         errEl.style.display = 'block';
         return;
       }
 
       document.getElementById('addClientForm').style.display = 'none';
-      ['nc-business','nc-contact','nc-email','nc-phone','nc-password'].forEach(function(id){ document.getElementById(id).value=''; });
+      ['nc-business','nc-contact','nc-email','nc-phone'].forEach(function(id){ document.getElementById(id).value=''; });
       document.getElementById('nc-price').value = 99;
       document.getElementById('nc-active').checked = false;
-      await loadClients();
+      await loadPending();
+      alert('Company code for ' + business + ': ' + code + '\n\nGive this to the client along with the link to own-the-outcome-site.netlify.app/redeem-portal.html — they\'ll enter the code, set their own email/password, and their portal will appear here automatically once they finish.');
     });
+
+    function pendingCardHTML(p) {
+      return '<div class="card" data-pending-id="' + p.id + '">' +
+        '<div class="client-row" style="cursor:default;">' +
+          '<div class="client-row-main"><h3>' + escapeHtml(p.business_name) + '</h3><p>' + escapeHtml(p.email) + (p.phone ? ' · ' + escapeHtml(p.phone) : '') + '</p></div>' +
+          '<div class="client-row-right"><span class="status-pill wait">Code: ' + escapeHtml(p.login_code) + '</span>' +
+            '<button class="btn-text-muted" onclick="cancelPending(\'' + p.id + '\')">Cancel</button></div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    async function loadPending() {
+      const { data } = await sb.from('pending_clients').select('*').order('created_at', { ascending: false });
+      const list = document.getElementById('pendingList');
+      const title = document.getElementById('pendingTitle');
+      if (!data || !data.length) { list.innerHTML = ''; title.style.display = 'none'; return; }
+      title.style.display = 'block';
+      list.innerHTML = data.map(pendingCardHTML).join('');
+    }
+
+    async function cancelPending(id) {
+      if (!confirm('Cancel this invite? The code will stop working.')) return;
+      await sb.from('pending_clients').delete().eq('id', id);
+      await loadPending();
+    }
 
     function clientCardHTML(c) {
       const planPill = c.care_plan_active
@@ -596,6 +621,7 @@
       if (!admin) return;
       document.querySelector('.client-name').textContent = admin.name || 'Admin';
       await loadClients();
+      await loadPending();
       await loadInquiries();
       await loadReferrals();
     })();
