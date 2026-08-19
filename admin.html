@@ -197,6 +197,7 @@
       <button class="side-link" data-tab="clients">Clients</button>
       <button class="side-link" data-tab="inbox">Inbox</button>
       <button class="side-link" data-tab="leads">Leads</button>
+      <button class="side-link" data-tab="quotes">Quotes</button>
       <button class="side-link" data-tab="ai-news">AI News</button>
       <button class="side-link" data-tab="referrals">Referrals</button>
     </nav>
@@ -362,6 +363,34 @@
     <div id="leadsList"></div>
   </main>
 
+  <main class="tab-section" id="tab-quotes">
+    <div class="toolbar">
+      <div></div>
+      <button class="btn" id="addQuoteToggle" type="button">+ New Quote</button>
+    </div>
+
+    <div class="card add-mini-form" id="addQuoteForm" style="display:none; margin-bottom: 18px;">
+      <p class="field-label" style="margin-bottom:12px; font-size:14px;">New quote</p>
+      <div class="field-grid">
+        <div><label class="field-label">Business name</label><input class="field-input" id="nq-business"></div>
+        <div><label class="field-label">Contact name</label><input class="field-input" id="nq-contact"></div>
+      </div>
+      <div><label class="field-label">Contact email</label><input class="field-input" id="nq-email" type="email"></div>
+      <button class="btn" id="nq-submit" type="button" style="margin-top:14px;">Create Draft</button>
+      <button class="btn-text-muted" id="nq-cancel" type="button" style="margin-left:14px;">Cancel</button>
+      <p class="empty-note" id="nq-error" style="display:none; color:var(--bad); padding: 10px 0 0;"></p>
+    </div>
+
+    <div class="filter-row" id="quoteStatusFilters">
+      <button class="filter-btn active" data-status="all">All</button>
+      <button class="filter-btn" data-status="draft">Draft</button>
+      <button class="filter-btn" data-status="sent">Sent</button>
+      <button class="filter-btn" data-status="accepted">Accepted</button>
+      <button class="filter-btn" data-status="declined">Declined</button>
+    </div>
+    <div id="quotesList"></div>
+  </main>
+
   <main class="tab-section" id="tab-ai-news">
     <div class="card">
       <p class="field-label" style="margin-bottom: 6px;">Coming soon</p>
@@ -388,6 +417,8 @@
     let clientsCache = [];
     let leadsCache = [];
     let activeLeadStageFilter = 'all';
+    let quotesCache = [];
+    let activeQuoteStatusFilter = 'all';
     let inquiriesCache = [];
     let activeTypeFilter = 'all';
     let activeStatusFilter = 'all';
@@ -644,7 +675,22 @@
           '<label class="field-label">New update text</label>' +
           '<input class="field-input" id="na-text-' + id + '" placeholder="e.g., Your tool went live." style="margin-bottom:10px;">' +
           '<button class="btn-outline small" onclick="addActivity(\'' + id + '\')">+ Add Update</button>' +
-        '</div>';
+        '</div>' +
+
+        '<h4 class="subsection-title">Quotes</h4>' +
+        clientQuotesHTML(id);
+    }
+
+    function clientQuotesHTML(clientId) {
+      const list = quotesCache.filter(function (q) { return q.client_id === clientId; });
+      return '<ul class="mini-list">' +
+          (list.length ? list.map(function (q) {
+            return '<li><div class="mini-main"><div class="name">' + escapeHtml(q.business_name) + ' — ' + fmtMoney(quoteTotal(q)) + '</div>' +
+              '<div class="meta">' + q.status.charAt(0).toUpperCase() + q.status.slice(1) + ' · ' + fmtDateTime(q.created_at) + '</div></div>' +
+              '<button class="btn-outline small" onclick="switchTab(\'quotes\'); openQuote(\'' + q.id + '\')">Open</button></li>';
+          }).join('') : '<li class="empty-note" style="padding:8px 0;">No quotes yet.</li>') +
+        '</ul>' +
+        '<button class="btn-outline small" onclick="createQuoteForClient(\'' + clientId + '\')">+ New Quote</button>';
     }
 
     function toolMiniHTML(t) {
@@ -917,6 +963,7 @@
         ? '<span class="status-pill muted">Converted to client</span>'
         : '<button class="btn-outline small" onclick="convertLeadToClient(\'' + l.id + '\')">Convert to Client</button>';
       const contactedBtn = '<button class="btn-outline small" onclick="toggleLeadContacted(\'' + l.id + '\')">' + (l.contacted ? '✓ Contacted' : 'Mark Contacted') + '</button>';
+      const quoteBtn = '<button class="btn-outline small" onclick="createQuoteForLead(\'' + l.id + '\')">+ New Quote</button>';
       return '<div class="card" style="margin-bottom:10px;">' +
         '<div class="client-row" style="cursor:default; align-items:flex-start;">' +
           '<div class="client-row-main"><h3>' + escapeHtml(l.business_name) + '</h3>' +
@@ -933,7 +980,7 @@
         '</div>' +
         '<div class="inquiry-footer">' +
           '<span class="empty-note" style="padding:0; text-align:left;">Added ' + fmtDateTime(l.created_at) + '</span>' +
-          '<div style="display:flex; gap:10px; align-items:center;">' + contactedBtn + convertBtn + '<button class="btn-text-muted" onclick="deleteLead(\'' + l.id + '\')">Delete</button></div>' +
+          '<div style="display:flex; gap:10px; align-items:center;">' + contactedBtn + quoteBtn + convertBtn + '<button class="btn-text-muted" onclick="deleteLead(\'' + l.id + '\')">Delete</button></div>' +
         '</div>' +
       '</div>';
     }
@@ -997,6 +1044,252 @@
       renderLeads();
       await loadPending();
       switchTab('clients');
+    }
+
+    // ---------- quotes tab ----------
+    document.getElementById('addQuoteToggle').addEventListener('click', function () {
+      const f = document.getElementById('addQuoteForm');
+      f.style.display = f.style.display === 'none' ? 'block' : 'none';
+    });
+    document.getElementById('nq-cancel').addEventListener('click', function () {
+      document.getElementById('addQuoteForm').style.display = 'none';
+    });
+
+    document.getElementById('nq-submit').addEventListener('click', async function () {
+      const errEl = document.getElementById('nq-error');
+      errEl.style.display = 'none';
+      const business = document.getElementById('nq-business').value.trim();
+      if (!business) {
+        errEl.textContent = 'Business name is required.';
+        errEl.style.display = 'block';
+        return;
+      }
+      await createQuoteRow({
+        business_name: business,
+        contact_name: document.getElementById('nq-contact').value.trim(),
+        contact_email: document.getElementById('nq-email').value.trim()
+      });
+      document.getElementById('addQuoteForm').style.display = 'none';
+      ['nq-business','nq-contact','nq-email'].forEach(function (id) { document.getElementById(id).value = ''; });
+    });
+
+    document.querySelectorAll('#quoteStatusFilters .filter-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('#quoteStatusFilters .filter-btn').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        activeQuoteStatusFilter = btn.dataset.status;
+        renderQuotes();
+      });
+    });
+
+    function fmtMoney(n) {
+      return '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    }
+
+    function quoteTotal(q) {
+      return (q.quote_items || []).reduce(function (sum, it) { return sum + Number(it.price || 0); }, 0);
+    }
+
+    function quoteStatusPillClass(s) {
+      if (s === 'accepted') return '';
+      if (s === 'sent') return 'wait';
+      return 'muted';
+    }
+
+    function quoteCardHTML(q) {
+      const total = quoteTotal(q);
+      return '<div class="card client-card" data-quote-id="' + q.id + '">' +
+        '<div class="client-row" onclick="toggleQuote(\'' + q.id + '\')">' +
+          '<div class="client-row-main"><h3>' + escapeHtml(q.business_name) + '</h3><p>' + fmtMoney(total) + ' · ' + fmtDateTime(q.created_at) + '</p></div>' +
+          '<div class="client-row-right"><span class="status-pill ' + quoteStatusPillClass(q.status) + '">' + q.status.charAt(0).toUpperCase() + q.status.slice(1) + '</span><span class="chevron">›</span></div>' +
+        '</div>' +
+        '<div class="client-detail" id="quote-detail-' + q.id + '"></div>' +
+      '</div>';
+    }
+
+    function renderQuotes() {
+      let list = quotesCache;
+      if (activeQuoteStatusFilter !== 'all') list = list.filter(function (q) { return q.status === activeQuoteStatusFilter; });
+      const el = document.getElementById('quotesList');
+      el.innerHTML = list.length ? list.map(quoteCardHTML).join('') : '<p class="empty-note">No quotes here yet.</p>';
+    }
+
+    async function loadQuotes() {
+      const { data } = await sb.from('quotes').select('*, quote_items(*)').order('created_at', { ascending: false });
+      quotesCache = data || [];
+      renderQuotes();
+    }
+
+    async function createQuoteRow(payload) {
+      const { data, error } = await sb.from('quotes').insert(payload).select('*, quote_items(*)').single();
+      if (error) { alert('Could not create quote: ' + error.message); return; }
+      quotesCache.unshift(data);
+      renderQuotes();
+      switchTab('quotes');
+      openQuote(data.id);
+    }
+
+    async function createQuoteForClient(clientId) {
+      const c = clientsCache.find(function (x) { return x.id === clientId; });
+      if (!c) return;
+      await createQuoteRow({ business_name: c.business_name, contact_name: c.contact_name || '', contact_email: c.email || '', client_id: c.id });
+    }
+
+    async function createQuoteForLead(leadId) {
+      const l = leadsCache.find(function (x) { return x.id === leadId; });
+      if (!l) return;
+      await createQuoteRow({ business_name: l.business_name, contact_name: l.contact_name || '', contact_email: l.email || '', lead_id: l.id });
+    }
+
+    function toggleQuote(id) {
+      const card = document.querySelector('.client-card[data-quote-id="' + id + '"]');
+      if (!card) return;
+      const wasOpen = card.classList.contains('open');
+      document.querySelectorAll('#quotesList .client-card.open').forEach(function (c) { c.classList.remove('open'); });
+      if (wasOpen) return;
+      card.classList.add('open');
+      renderQuoteDetail(id);
+    }
+
+    function openQuote(id) {
+      const card = document.querySelector('.client-card[data-quote-id="' + id + '"]');
+      if (!card) return;
+      card.classList.add('open');
+      renderQuoteDetail(id);
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function quoteItemMiniHTML(quoteId, it) {
+      return '<li><div class="mini-main"><div class="name">' + escapeHtml(it.title) + '</div>' +
+        (it.description ? '<div class="meta">' + escapeHtml(it.description) + '</div>' : '') + '</div>' +
+        '<div class="mini-actions"><span style="font-weight:600; color:var(--ink);">' + fmtMoney(it.price) + '</span>' +
+        '<button class="btn-text-muted" onclick="deleteQuoteItem(\'' + quoteId + '\', \'' + it.id + '\')">Remove</button></div></li>';
+    }
+
+    function renderQuoteDetail(id) {
+      const q = quotesCache.find(function (x) { return x.id === id; });
+      const el = document.getElementById('quote-detail-' + id);
+      if (!q || !el) return;
+      const items = (q.quote_items || []).slice().sort(function (a, b) { return a.sort_order - b.sort_order; });
+      const linkUrl = window.location.origin + '/quote-view.html?q=' + q.share_token;
+
+      el.innerHTML =
+        '<div class="field-grid">' +
+          '<div><label class="field-label">Business name</label><input class="field-input" id="q-business-' + id + '" value="' + escapeHtml(q.business_name) + '"></div>' +
+          '<div><label class="field-label">Contact name</label><input class="field-input" id="q-contact-' + id + '" value="' + escapeHtml(q.contact_name || '') + '"></div>' +
+        '</div>' +
+        '<div class="field-grid">' +
+          '<div><label class="field-label">Contact email</label><input class="field-input" id="q-email-' + id + '" value="' + escapeHtml(q.contact_email || '') + '"></div>' +
+          '<div><label class="field-label">Status</label><select class="field-input" id="q-status-' + id + '">' +
+            ['draft', 'sent', 'accepted', 'declined'].map(function (s) { return '<option value="' + s + '" ' + (q.status === s ? 'selected' : '') + '>' + s.charAt(0).toUpperCase() + s.slice(1) + '</option>'; }).join('') +
+          '</select></div>' +
+        '</div>' +
+
+        '<label class="field-label">The situation</label>' +
+        '<textarea class="field-input" id="q-situation-' + id + '" rows="3" style="margin-bottom:14px;">' + escapeHtml(q.situation || '') + '</textarea>' +
+
+        '<h4 class="subsection-title">The plan (line items)</h4>' +
+        '<ul class="mini-list" id="q-items-' + id + '">' +
+          (items.length ? items.map(function (it) { return quoteItemMiniHTML(id, it); }).join('') : '<li class="empty-note" style="padding:8px 0;">No line items yet.</li>') +
+        '</ul>' +
+        '<div class="add-mini-form">' +
+          '<div class="field-grid">' +
+            '<div><label class="field-label">Solution name</label><input class="field-input" id="qi-title-' + id + '"></div>' +
+            '<div><label class="field-label">Price</label><input class="field-input" type="number" id="qi-price-' + id + '"></div>' +
+          '</div>' +
+          '<label class="field-label">Description</label><textarea class="field-input" id="qi-desc-' + id + '" rows="2" style="margin-bottom:10px;"></textarea>' +
+          '<button class="btn-outline small" onclick="addQuoteItem(\'' + id + '\')">+ Add Line Item</button>' +
+        '</div>' +
+        '<p style="text-align:right; font-weight:600; color:var(--ink); margin: 10px 0 20px;">Total: ' + fmtMoney(quoteTotal(q)) + '</p>' +
+
+        '<div class="field-grid">' +
+          '<div><label class="field-label">Timeline</label><input class="field-input" id="q-timeline-' + id + '" value="' + escapeHtml(q.timeline || '') + '" placeholder="e.g. 2–3 weeks"></div>' +
+          '<div><label class="field-label">Valid until</label><input class="field-input" type="date" id="q-valid-' + id + '" value="' + (q.valid_until || '') + '"></div>' +
+        '</div>' +
+        '<label class="field-label">Next steps</label>' +
+        '<textarea class="field-input" id="q-nextsteps-' + id + '" rows="2" style="margin-bottom:14px;">' + escapeHtml(q.next_steps || '') + '</textarea>' +
+
+        '<label class="field-label">Internal notes (not shown to client)</label>' +
+        '<textarea class="field-input" id="q-notes-' + id + '" rows="2" style="margin-bottom:14px;">' + escapeHtml(q.notes || '') + '</textarea>' +
+
+        '<button class="btn-outline" onclick="saveQuote(\'' + id + '\')">Save Quote</button>' +
+        '<button class="btn-outline small" style="margin-left:10px;" onclick="copyQuoteLink(\'' + id + '\', \'' + linkUrl + '\')" id="qlink-' + id + '">Copy Share Link</button>' +
+        '<a class="btn-outline small" style="margin-left:10px;" href="' + linkUrl + '" target="_blank" rel="noopener">Preview</a>' +
+        '<button class="btn-outline danger small" style="margin-left:10px;" onclick="deleteQuote(\'' + id + '\')">Delete</button>' +
+        '<p class="empty-note" id="q-status-msg-' + id + '" style="display:none; padding:8px 0 0;"></p>';
+    }
+
+    async function addQuoteItem(quoteId) {
+      const titleEl = document.getElementById('qi-title-' + quoteId);
+      const title = titleEl.value.trim();
+      if (!title) return;
+      const price = parseFloat(document.getElementById('qi-price-' + quoteId).value) || 0;
+      const desc = document.getElementById('qi-desc-' + quoteId).value.trim();
+      const q = quotesCache.find(function (x) { return x.id === quoteId; });
+      const sortOrder = q && q.quote_items ? q.quote_items.length : 0;
+      const { error } = await sb.from('quote_items').insert({ quote_id: quoteId, title: title, description: desc, price: price, sort_order: sortOrder });
+      if (error) { alert('Could not add line item: ' + error.message); return; }
+      await refreshQuote(quoteId);
+    }
+
+    async function deleteQuoteItem(quoteId, itemId) {
+      await sb.from('quote_items').delete().eq('id', itemId);
+      await refreshQuote(quoteId);
+    }
+
+    async function refreshQuote(quoteId) {
+      const { data } = await sb.from('quotes').select('*, quote_items(*)').eq('id', quoteId).maybeSingle();
+      if (!data) return;
+      const idx = quotesCache.findIndex(function (x) { return x.id === quoteId; });
+      if (idx >= 0) quotesCache[idx] = data; else quotesCache.unshift(data);
+      renderQuotes();
+      const card = document.querySelector('.client-card[data-quote-id="' + quoteId + '"]');
+      if (card) card.classList.add('open');
+      renderQuoteDetail(quoteId);
+    }
+
+    async function saveQuote(id) {
+      const q = quotesCache.find(function (x) { return x.id === id; });
+      const newStatus = document.getElementById('q-status-' + id).value;
+      const payload = {
+        business_name: document.getElementById('q-business-' + id).value.trim(),
+        contact_name: document.getElementById('q-contact-' + id).value.trim(),
+        contact_email: document.getElementById('q-email-' + id).value.trim(),
+        situation: document.getElementById('q-situation-' + id).value.trim(),
+        timeline: document.getElementById('q-timeline-' + id).value.trim(),
+        valid_until: document.getElementById('q-valid-' + id).value || null,
+        next_steps: document.getElementById('q-nextsteps-' + id).value.trim(),
+        notes: document.getElementById('q-notes-' + id).value.trim(),
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      };
+      if (newStatus === 'sent' && q && !q.sent_at) payload.sent_at = new Date().toISOString();
+      if (newStatus === 'accepted' && q && !q.accepted_at) payload.accepted_at = new Date().toISOString();
+
+      const { error } = await sb.from('quotes').update(payload).eq('id', id);
+      const status = document.getElementById('q-status-msg-' + id);
+      if (status) {
+        status.style.display = 'block';
+        status.textContent = error ? ('Could not save: ' + error.message) : 'Saved.';
+        setTimeout(function () { status.style.display = 'none'; }, 2500);
+      }
+      await refreshQuote(id);
+    }
+
+    function copyQuoteLink(id, url) {
+      navigator.clipboard.writeText(url).then(function () {
+        var btn = document.getElementById('qlink-' + id);
+        var original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(function () { btn.textContent = original; }, 1500);
+      });
+    }
+
+    async function deleteQuote(id) {
+      if (!confirm('Delete this quote? This cannot be undone.')) return;
+      await sb.from('quotes').delete().eq('id', id);
+      quotesCache = quotesCache.filter(function (x) { return x.id !== id; });
+      renderQuotes();
     }
 
     // ---------- dashboard tab ----------
@@ -1284,6 +1577,7 @@
       await loadInquiries();
       await loadReferrals();
       await loadLeads();
+      await loadQuotes();
       await loadStandardData();
       renderStandardGrid();
       await loadExceptions();

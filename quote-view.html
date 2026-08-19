@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Quote — Own the Outcome</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='100' fill='%23201F1B'/%3E%3Ctext x='100' y='128' font-family='Georgia,serif' font-style='italic' font-weight='500' font-size='82' fill='%23FBF8F2' text-anchor='middle'%3EO%3Ctspan fill='%23DD7A45' font-family='Arial,sans-serif' font-style='normal' font-weight='700' font-size='62'%3Eo%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF8F2; --paper: #FFFFFF; --ink: #201F1B; --ink-soft: #47453E; --muted: #7A776C;
+    --line: #E6E0D2; --rust: #B14A2C; --good: #4B6A47; --good-bg: #EAF0E7;
+    --wait-bg: #F7EFDD; --wait: #92702B; --bad: #B14A2C; --bad-bg: #F7E9E4;
+    --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--sans); color: var(--ink-soft); line-height: 1.6; background: var(--cream); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  header.site { background: var(--paper); border-bottom: 1px solid var(--line); }
+  .header-inner { display: flex; align-items: center; justify-content: center; padding: 22px 32px; }
+  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .brand .mark { width: 36px; height: 36px; flex: none; }
+  .brand .wordmark { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 19px; color: var(--ink); }
+
+  main { max-width: 640px; margin: 0 auto; padding: 44px 24px 80px; }
+  .top { text-align: center; margin-bottom: 34px; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--rust); margin: 0 0 12px; }
+  h1 { font-family: var(--serif); font-weight: 500; font-size: 32px; color: var(--ink); margin: 0 0 8px; letter-spacing: -0.01em; }
+  .meta { font-size: 13.5px; color: var(--muted); }
+  .status-pill { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; background: var(--good-bg); color: var(--good); margin-top: 10px; }
+  .status-pill.wait { background: var(--wait-bg); color: var(--wait); }
+  .status-pill.muted { background: #EFEBE4; color: var(--muted); }
+
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 28px; margin-bottom: 16px; }
+  .card h2 { font-family: var(--serif); font-weight: 600; font-size: 17px; color: var(--ink); margin: 0 0 12px; }
+  .card p { margin: 0; font-size: 14.5px; }
+  .card p + p { margin-top: 10px; }
+
+  .item-row { display: flex; justify-content: space-between; gap: 16px; padding: 14px 0; border-top: 1px solid var(--line); }
+  .item-row:first-child { border-top: none; padding-top: 0; }
+  .item-main .item-title { font-weight: 600; color: var(--ink); font-size: 15px; }
+  .item-main .item-desc { font-size: 13.5px; color: var(--muted); margin-top: 3px; }
+  .item-price { font-family: var(--serif); font-weight: 600; font-size: 15px; color: var(--ink); white-space: nowrap; }
+
+  .total-row { display: flex; justify-content: space-between; align-items: center; padding-top: 18px; margin-top: 6px; border-top: 2px solid var(--ink); }
+  .total-row .label { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .total-row .amount { font-family: var(--serif); font-weight: 600; font-size: 26px; color: var(--ink); }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; background: var(--ink); color: var(--cream); padding: 13px 24px; border-radius: 3px; text-decoration: none; font-weight: 600; font-size: 15px; border: 1px solid var(--ink); cursor: pointer; font-family: var(--sans); transition: background .15s ease, border-color .15s ease; }
+  .btn:hover { background: var(--rust); border-color: var(--rust); }
+  .btn:disabled { opacity: 0.6; cursor: default; }
+  .btn-outline { display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: var(--ink); text-decoration: none; border: 1px solid var(--line); border-radius: 3px; padding: 12px 20px; background: none; cursor: pointer; font-family: var(--sans); }
+  .btn-outline:hover { border-color: var(--ink); }
+
+  .actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+  .accepted-note { text-align: center; color: var(--good); font-weight: 600; font-size: 14.5px; padding: 14px; background: var(--good-bg); border-radius: 4px; }
+
+  .empty-note { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 15px; }
+
+  @media print {
+    header.site, .actions { display: none; }
+    body { background: var(--paper); }
+    .card { border: none; padding: 0; margin-bottom: 24px; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="site">
+    <div class="header-inner">
+      <a class="brand" href="index.html">
+        <svg class="mark" viewBox="0 0 200 200" aria-hidden="true">
+          <circle cx="100" cy="100" r="94" fill="#14130F"/>
+          <circle cx="100" cy="100" r="95" fill="none" stroke="#FBF8F2" stroke-width="6" opacity="0.9"/>
+          <text x="100" y="138" font-family="Fraunces" font-style="italic" font-weight="500" font-size="114" fill="#FBF8F2" text-anchor="middle">O<tspan fill="#DD7A45" font-family="Inter" font-style="normal" font-weight="700" font-size="86">o</tspan></text>
+        </svg>
+        <div class="wordmark">Own the Outcome</div>
+      </a>
+    </div>
+  </header>
+
+  <main id="content">
+    <p class="empty-note">Loading your quote…</p>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="sb.js"></script>
+  <script>
+    function fmtMoney(n) {
+      return '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    }
+
+    function statusLabel(s) {
+      if (s === 'accepted') return 'Accepted';
+      if (s === 'declined') return 'Declined';
+      if (s === 'sent') return 'Awaiting your response';
+      return 'Draft';
+    }
+    function statusClass(s) {
+      if (s === 'accepted') return '';
+      if (s === 'sent') return 'wait';
+      return 'muted';
+    }
+
+    async function loadQuote() {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('q');
+      const content = document.getElementById('content');
+      if (!token) { content.innerHTML = '<p class="empty-note">No quote specified.</p>'; return; }
+
+      const { data, error } = await sb.rpc('get_quote_by_token', { p_token: token });
+      if (error || !data || !data.length) {
+        content.innerHTML = '<p class="empty-note">We couldn\'t find this quote. Double check the link, or reach out and we\'ll resend it.</p>';
+        return;
+      }
+
+      const q = data[0];
+      const items = data.filter(function (r) { return r.item_id; }).map(function (r) {
+        return { title: r.item_title, description: r.item_description, price: r.item_price };
+      });
+      const total = items.reduce(function (sum, it) { return sum + Number(it.price || 0); }, 0);
+
+      let html = '<div class="top">' +
+        '<p class="eyebrow">Proposal</p>' +
+        '<h1>' + escapeHtml(q.business_name) + '</h1>' +
+        '<p class="meta">Prepared ' + fmtDateTime(q.created_at) + (q.valid_until ? ' · Valid through ' + fmtDate(q.valid_until) : '') + '</p>' +
+        '<span class="status-pill ' + statusClass(q.status) + '">' + statusLabel(q.status) + '</span>' +
+      '</div>';
+
+      if (q.situation) {
+        html += '<div class="card"><h2>The situation</h2><p>' + escapeHtml(q.situation).replace(/\n/g, '</p><p>') + '</p></div>';
+      }
+
+      if (items.length) {
+        html += '<div class="card"><h2>The plan</h2>' +
+          items.map(function (it) {
+            return '<div class="item-row"><div class="item-main"><div class="item-title">' + escapeHtml(it.title) + '</div>' +
+              (it.description ? '<div class="item-desc">' + escapeHtml(it.description) + '</div>' : '') + '</div>' +
+              '<div class="item-price">' + fmtMoney(it.price) + '</div></div>';
+          }).join('') +
+          '<div class="total-row"><span class="label">Total investment</span><span class="amount">' + fmtMoney(total) + '</span></div>' +
+        '</div>';
+      }
+
+      if (q.timeline) {
+        html += '<div class="card"><h2>Timeline</h2><p>' + escapeHtml(q.timeline) + '</p></div>';
+      }
+
+      if (q.next_steps) {
+        html += '<div class="card"><h2>Next steps</h2><p>' + escapeHtml(q.next_steps).replace(/\n/g, '</p><p>') + '</p></div>';
+      }
+
+      html += '<div class="actions" id="actionsRow">';
+      if (q.status === 'accepted') {
+        html += '<p class="accepted-note" style="width:100%;">You accepted this quote — we\'ll be in touch to get started.</p>';
+      } else if (q.status !== 'declined') {
+        html += '<button class="btn" id="acceptBtn">Accept This Quote</button>';
+      }
+      html += '<button class="btn-outline" onclick="window.print()">Print / Save as PDF</button>';
+      html += '</div>';
+
+      content.innerHTML = html;
+
+      const acceptBtn = document.getElementById('acceptBtn');
+      if (acceptBtn) {
+        acceptBtn.addEventListener('click', async function () {
+          acceptBtn.disabled = true;
+          acceptBtn.textContent = 'Accepting…';
+          const { data: ok } = await sb.rpc('mark_quote_accepted', { p_token: token });
+          if (ok) {
+            document.getElementById('actionsRow').innerHTML =
+              '<p class="accepted-note" style="width:100%;">Thanks — you accepted this quote. We\'ll be in touch to get started.</p>' +
+              '<button class="btn-outline" onclick="window.print()">Print / Save as PDF</button>';
+          } else {
+            acceptBtn.disabled = false;
+            acceptBtn.textContent = 'Accept This Quote';
+          }
+        });
+      }
+    }
+
+    loadQuote();
+  </script>
+
+</body>
+</html>
