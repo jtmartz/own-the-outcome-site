@@ -932,7 +932,7 @@
           '</div>' +
         '</div>' +
         '<div class="inquiry-footer">' +
-          '<span class="empty-note" style="padding:0; text-align:left;">Added ' + fmtDate(l.created_at) + '</span>' +
+          '<span class="empty-note" style="padding:0; text-align:left;">Added ' + fmtDateTime(l.created_at) + '</span>' +
           '<div style="display:flex; gap:10px; align-items:center;">' + contactedBtn + convertBtn + '<button class="btn-text-muted" onclick="deleteLead(\'' + l.id + '\')">Delete</button></div>' +
         '</div>' +
       '</div>';
@@ -1025,7 +1025,7 @@
       const items = [];
       (pending || []).forEach(function (p) {
         items.push({
-          name: p.business_name, label: 'Invite not sent yet', meta: 'Added ' + fmtDate(p.created_at),
+          name: p.business_name, label: 'Invite not sent yet', meta: 'Added ' + fmtDateTime(p.created_at),
           action: '<button class="btn-outline small" onclick="switchTab(\'clients\')">Go to Clients</button>'
         });
       });
