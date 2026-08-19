@@ -21,6 +21,14 @@ async function requireClient() {
   if (!session) { window.location.href = 'login.html'; return null; }
   const { data: client } = await sb.from('clients').select('*').eq('id', session.user.id).maybeSingle();
   if (!client) { window.location.href = 'login.html'; return null; }
+  // Self-heal: if an email change was confirmed since we last saved the clients row
+  // (Supabase Auth only flips session.user.email once the confirmation link is clicked),
+  // sync it here so the displayed/stored email never gets ahead of what's actually confirmed.
+  if (session.user.email && client.email !== session.user.email) {
+    const newEmail = session.user.email;
+    await sb.from('clients').update({ email: newEmail }).eq('id', client.id);
+    client.email = newEmail;
+  }
   document.querySelectorAll('.client-name').forEach(function (el) { el.textContent = client.business_name; });
   return client;
 }
@@ -56,7 +64,8 @@ function fmtDate(d) {
 function fmtDateTime(iso) {
   if (!iso) return '—';
   const dt = new Date(iso);
-  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
+    ' · ' + dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
 // Basic HTML-escaping for interpolating database text into templates.

@@ -106,8 +106,6 @@
 </head>
 <body>
 
-  <div class="badge-note">Visual preview only — this portal isn't wired up to real accounts or data yet.</div>
-
   <header class="site">
     <div class="header-inner">
       <a class="brand" href="index.html">
@@ -166,9 +164,11 @@
       var metaLine = t.status === 'live'
         ? ('Live since ' + fmtDate(t.live_since))
         : (t.status === 'building' ? 'In progress' : 'Paused');
+      var docUrl = (t.documentation_url || '').trim();
+      var docIsSafe = /^https?:\/\//i.test(docUrl);
       var actions = t.status === 'live'
         ? ('<a class="btn-outline primary" href="request-service.html">Request an Update</a>' +
-           (t.documentation_url ? '<a class="btn-outline" href="' + escapeHtml(t.documentation_url) + '" target="_blank" rel="noopener">View Documentation</a>' : ''))
+           (docIsSafe ? '<a class="btn-outline" href="' + escapeHtml(docUrl) + '" target="_blank" rel="noopener">View Documentation</a>' : ''))
         : '<a class="btn-outline" href="updates.html">View Details</a>';
 
       return '<div class="tool-card">' +
@@ -188,15 +188,19 @@
 
       document.getElementById('dashboardNavLink').href = client.care_plan_active ? 'customer-portal.html' : 'customer-portal-standard.html';
 
-      const { data: tools } = await sb.from('tools')
+      const { data: tools, error } = await sb.from('tools')
         .select('*')
         .eq('client_id', client.id)
         .order('created_at', { ascending: true });
 
       const list = document.getElementById('toolList');
       const addCard = list.querySelector('.add-tool-card');
-      if (!tools || tools.length === 0) {
-        document.getElementById('toolsEmptyNote').style.display = 'block';
+      const emptyNote = document.getElementById('toolsEmptyNote');
+      if (error) {
+        emptyNote.textContent = 'Something went wrong loading your tools — refresh to try again.';
+        emptyNote.style.display = 'block';
+      } else if (!tools || tools.length === 0) {
+        emptyNote.style.display = 'block';
       } else {
         tools.forEach(function (t) {
           const div = document.createElement('div');

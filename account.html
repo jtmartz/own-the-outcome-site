@@ -64,6 +64,12 @@
   }
   .btn:hover { background: var(--rust); border-color: var(--rust); }
   .btn:disabled { opacity: 0.6; cursor: default; }
+  .btn-text-muted {
+    background: none; border: none; color: var(--muted); font-size: 13.5px; font-family: var(--sans);
+    cursor: pointer; padding: 0; text-decoration: underline;
+  }
+  .btn-text-muted:hover { color: var(--bad); }
+  .btn-text-muted:disabled { opacity: 0.6; cursor: default; }
 
   .note { display: none; font-size: 13.5px; border-radius: 3px; padding: 10px 14px; margin-top: 16px; }
   .note.show { display: block; }
@@ -132,6 +138,18 @@
         <p class="note" id="passwordNote"></p>
       </form>
     </div>
+
+    <div class="card">
+      <h2>Manage Subscription</h2>
+      <p class="card-sub" id="planStatusLine">—</p>
+      <div id="planActiveActions" style="display:none;">
+        <button class="btn-text-muted" type="button" id="cancelPlanBtn">Cancel Subscription</button>
+        <p class="note" id="cancelPlanNote"></p>
+      </div>
+      <div id="planInactiveActions" style="display:none;">
+        <a class="btn" href="care-plan.html">Explore the Care Plan</a>
+      </div>
+    </div>
   </section>
 
   <footer class="portal-footer">
@@ -141,12 +159,52 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="sb.js"></script>
   <script>
+    let currentClient = null;
+
     (async function () {
-      const client = await requireClient();
-      if (!client) return;
-      document.getElementById('dashboardNavLink').href = client.care_plan_active ? 'customer-portal.html' : 'customer-portal-standard.html';
-      document.getElementById('new-email').value = client.email || '';
+      currentClient = await requireClient();
+      if (!currentClient) return;
+      document.getElementById('dashboardNavLink').href = currentClient.care_plan_active ? 'customer-portal.html' : 'customer-portal-standard.html';
+      document.getElementById('new-email').value = currentClient.email || '';
+
+      const statusLine = document.getElementById('planStatusLine');
+      if (currentClient.care_plan_active) {
+        statusLine.textContent = "You're on the Care Plan — $" + currentClient.care_plan_price + '/mo.';
+        document.getElementById('planActiveActions').style.display = 'block';
+      } else {
+        statusLine.textContent = "You're not currently on the Care Plan.";
+        document.getElementById('planInactiveActions').style.display = 'block';
+      }
     })();
+
+    document.getElementById('cancelPlanBtn').addEventListener('click', async function () {
+      if (!currentClient) return;
+      if (!confirm("Send a cancellation request? We'll follow up to wrap up billing — this doesn't cancel it instantly.")) return;
+      const btn = document.getElementById('cancelPlanBtn');
+      const note = document.getElementById('cancelPlanNote');
+      note.className = 'note';
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+
+      const { error } = await sb.from('inquiries').insert({
+        client_id: currentClient.id,
+        type: 'plan_change',
+        body: 'Requested to cancel their Care Plan subscription.',
+        email: currentClient.email,
+        business_name: currentClient.business_name
+      });
+
+      if (error) {
+        note.textContent = 'Something went wrong sending this — try again, or reach out directly.';
+        note.classList.add('show', 'bad');
+        btn.disabled = false;
+        btn.textContent = 'Cancel Subscription';
+      } else {
+        note.textContent = "Got it — we'll follow up to confirm and wrap up billing.";
+        note.classList.add('show', 'good');
+        btn.disabled = true;
+      }
+    });
 
     document.getElementById('emailForm').addEventListener('submit', async function (e) {
       e.preventDefault();
@@ -163,8 +221,10 @@
         note.textContent = 'Could not update email: ' + error.message;
         note.classList.add('show', 'bad');
       } else {
-        await sb.from('clients').update({ email: newEmail }).eq('id', (await sb.auth.getUser()).data.user.id);
-        note.textContent = 'Check your inbox — Supabase may send a confirmation link to finish the email change before it takes effect.';
+        // Don't write the new email into the clients table yet — it isn't real until the
+        // confirmation link is clicked. requireClient() self-heals this on the next page
+        // load once Supabase actually flips the session's email over.
+        note.textContent = 'Check your inbox — you’ll need to click a confirmation link before this takes effect. Your login stays on the old email until you do.';
         note.classList.add('show', 'good');
       }
       btn.disabled = false; btn.textContent = 'Update Email';

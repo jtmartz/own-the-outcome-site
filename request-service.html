@@ -48,6 +48,11 @@
     border-radius: 3px; padding: 12px 14px; margin-top: 18px;
   }
   .success-note.show { display: block; }
+  .error-note {
+    display: none; text-align: center; font-size: 13.5px; color: var(--rust); background: #F7E9E4;
+    border-radius: 3px; padding: 12px 14px; margin-top: 18px;
+  }
+  .error-note.show { display: block; }
   .logout:hover { border-color: var(--ink); color: var(--ink); }
 
   .portal-nav { background: var(--paper); border-bottom: 1px solid var(--line); }
@@ -98,8 +103,6 @@
 </head>
 <body>
 
-  <div class="badge-note">Visual preview only — this portal isn't wired up to real accounts or data yet.</div>
-
   <header class="site">
     <div class="header-inner">
       <a class="brand" href="index.html">
@@ -145,6 +148,7 @@
 
         <button class="btn" type="submit" id="reqSubmitBtn">Submit Request</button>
         <p class="success-note" id="reqSuccess">Thanks — we've got it. We'll follow up within a day.</p>
+        <p class="error-note" id="reqError"></p>
       </form>
       <p class="form-note">We'll get back to you within a day.</p>
     </div>
@@ -175,6 +179,7 @@
 
       btn.disabled = true;
       btn.textContent = 'Submitting…';
+      document.getElementById('reqError').classList.remove('show');
 
       const { error } = await sb.from('inquiries').insert({
         client_id: currentClient.id,
@@ -188,6 +193,10 @@
       if (!error) {
         document.getElementById('reqForm').reset();
         document.getElementById('reqSuccess').classList.add('show');
+      } else {
+        const errEl = document.getElementById('reqError');
+        errEl.textContent = 'Something went wrong and this didn\'t send — try again, or reach out directly.';
+        errEl.classList.add('show');
       }
       btn.disabled = false;
       btn.textContent = 'Submit Request';

@@ -111,7 +111,13 @@
       const content = document.getElementById('content');
       if (!token) { content.innerHTML = '<p class="empty-note">No quote specified.</p>'; return; }
 
-      const { data, error } = await sb.rpc('get_quote_by_token', { p_token: token });
+      let data, error;
+      try {
+        ({ data, error } = await sb.rpc('get_quote_by_token', { p_token: token }));
+      } catch (e) {
+        content.innerHTML = '<p class="empty-note">Something went wrong loading this quote. Refresh to try again, or reach out and we\'ll resend the link.</p>';
+        return;
+      }
       if (error || !data || !data.length) {
         content.innerHTML = '<p class="empty-note">We couldn\'t find this quote. Double check the link, or reach out and we\'ll resend it.</p>';
         return;
@@ -169,15 +175,31 @@
         acceptBtn.addEventListener('click', async function () {
           acceptBtn.disabled = true;
           acceptBtn.textContent = 'Accepting…';
-          const { data: ok } = await sb.rpc('mark_quote_accepted', { p_token: token });
-          if (ok) {
+          let ok, error;
+          try {
+            ({ data: ok, error } = await sb.rpc('mark_quote_accepted', { p_token: token }));
+          } catch (e) {
+            error = e;
+          }
+          if (ok && !error) {
             document.getElementById('actionsRow').innerHTML =
               '<p class="accepted-note" style="width:100%;">Thanks — you accepted this quote. We\'ll be in touch to get started.</p>' +
               '<button class="btn-outline" onclick="window.print()">Print / Save as PDF</button>';
-            try { sb.functions.invoke('send-quote-accepted-email', { body: { quote_id: q.id } }); } catch (e) {}
+            // Best-effort notification — .catch (not try/catch) so it actually catches
+            // a rejection from this un-awaited call instead of silently doing nothing.
+            sb.functions.invoke('send-quote-accepted-email', { body: { quote_id: q.id } }).catch(function () {});
           } else {
             acceptBtn.disabled = false;
             acceptBtn.textContent = 'Accept This Quote';
+            const row = document.getElementById('actionsRow');
+            let errNote = row.querySelector('.accept-error');
+            if (!errNote) {
+              errNote = document.createElement('p');
+              errNote.className = 'accept-error';
+              errNote.style.cssText = 'width:100%; text-align:center; color:var(--bad); font-size:13.5px;';
+              row.appendChild(errNote);
+            }
+            errNote.textContent = 'Something went wrong — try again, or reach out and we\'ll confirm it manually.';
           }
         });
       }

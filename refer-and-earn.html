@@ -52,6 +52,11 @@
     border-radius: 3px; padding: 12px 14px; margin-top: 16px;
   }
   .success-note.show { display: block; }
+  .error-note {
+    display: none; font-size: 13.5px; color: var(--rust); background: #F7E9E4;
+    border-radius: 3px; padding: 12px 14px; margin-top: 16px;
+  }
+  .error-note.show { display: block; }
   .logout:hover { border-color: var(--ink); color: var(--ink); }
 
   .portal-nav { background: var(--paper); border-bottom: 1px solid var(--line); }
@@ -127,8 +132,6 @@
 </head>
 <body>
 
-  <div class="badge-note">Visual preview only — this portal isn't wired up to real accounts or data yet.</div>
-
   <header class="site">
     <div class="header-inner">
       <a class="brand" href="index.html">
@@ -173,6 +176,7 @@
         <textarea class="field-input" id="ref-note" rows="3" placeholder="Hey — thought of you when I got this built..."></textarea>
         <button class="btn-outline primary" type="submit" id="inviteSubmitBtn">Send Invite</button>
         <p class="success-note" id="inviteSuccess">Invite sent — their code is on its way.</p>
+        <p class="error-note" id="inviteError"></p>
       </form>
 
       <div class="how-it-works">
@@ -186,7 +190,7 @@
         </div>
         <div class="how-step">
           <p class="num">03</p>
-          <p>When they check out with that code, you earn a reward — [reward details TBD].</p>
+          <p>When they check out with that code, you earn a referral reward — we'll confirm the exact details with you.</p>
         </div>
       </div>
     </div>
@@ -215,6 +219,7 @@
   <script src="sb.js"></script>
   <script>
     let currentClient = null;
+    let referralsCache = [];
 
     function genCode() {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -223,12 +228,28 @@
       return 'OWN-' + s;
     }
 
+    // Generates a code and checks it isn't already in use, retrying a few times on
+    // the rare collision rather than trusting a single random draw to be unique.
+    async function genUniqueCode() {
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const code = genCode();
+        const { data } = await sb.from('referrals').select('id').eq('code', code).maybeSingle();
+        if (!data) return code;
+      }
+      return genCode() + Date.now().toString(36).slice(-3).toUpperCase();
+    }
+
     async function loadReferrals() {
-      const { data: refs } = await sb.from('referrals')
+      const { data: refs, error } = await sb.from('referrals')
         .select('*').eq('client_id', currentClient.id).order('created_at', { ascending: false });
 
+      referralsCache = refs || [];
       const body = document.getElementById('referralsBody');
       body.innerHTML = '';
+      if (error) {
+        document.getElementById('referralsTable').outerHTML = '<div class="empty-note">Something went wrong loading your referrals — refresh to try again.</div>';
+        return;
+      }
       if (!refs || !refs.length) {
         document.getElementById('referralsTable').outerHTML = '<div class="empty-note">No referrals sent yet.</div>';
         return;
@@ -260,20 +281,37 @@
       const note = document.getElementById('ref-note').value.trim();
       if (!email) return;
 
+      const errEl = document.getElementById('inviteError');
+      errEl.classList.remove('show');
+
+      if (currentClient.email && email.toLowerCase() === currentClient.email.toLowerCase()) {
+        errEl.textContent = "That's your own email — referrals are for businesses you're sending our way, not yourself.";
+        errEl.classList.add('show');
+        return;
+      }
+      const alreadySent = referralsCache.some(function (r) { return r.referred_email && r.referred_email.toLowerCase() === email.toLowerCase() && r.status !== 'reward_earned'; });
+      if (alreadySent && !confirm("You've already sent an invite to this email. Send another one anyway?")) {
+        return;
+      }
+
       btn.disabled = true;
       btn.textContent = 'Sending…';
 
+      const code = await genUniqueCode();
       const { error } = await sb.from('referrals').insert({
         client_id: currentClient.id,
         referred_email: email,
         note: note,
-        code: genCode()
+        code: code
       });
 
       if (!error) {
         document.getElementById('inviteForm').reset();
         document.getElementById('inviteSuccess').classList.add('show');
         await loadReferrals();
+      } else {
+        errEl.textContent = 'Something went wrong and this didn\'t send — try again, or reach out directly.';
+        errEl.classList.add('show');
       }
       btn.disabled = false;
       btn.textContent = 'Send Invite';

@@ -116,8 +116,6 @@
 </head>
 <body>
 
-  <div class="badge-note">Visual preview only — this portal isn't wired up to real accounts or data yet.</div>
-
   <header class="site">
     <div class="header-inner">
       <a class="brand" href="index.html">
@@ -201,11 +199,13 @@
       document.getElementById('dashboardNavLink').href = client.care_plan_active ? 'customer-portal.html' : 'customer-portal-standard.html';
 
       // In progress tool
-      const { data: buildingTools } = await sb.from('tools')
+      const { data: buildingTools, error: toolsErr } = await sb.from('tools')
         .select('*').eq('client_id', client.id).eq('status', 'building')
         .order('created_at', { ascending: false }).limit(1);
 
-      if (buildingTools && buildingTools.length) {
+      if (toolsErr) {
+        document.getElementById('inProgressCard').outerHTML = '<div class="empty-note">Something went wrong loading this — refresh to try again.</div>';
+      } else if (buildingTools && buildingTools.length) {
         const t = buildingTools[0];
         document.getElementById('progressTag').textContent = t.category || 'In progress';
         document.getElementById('progressName').textContent = t.name;
@@ -220,11 +220,13 @@
       }
 
       // Service requests (service_request + maintenance)
-      const { data: reqs } = await sb.from('inquiries')
+      const { data: reqs, error: reqsErr } = await sb.from('inquiries')
         .select('*').eq('client_id', client.id).in('type', ['service_request', 'maintenance'])
         .order('created_at', { ascending: false });
 
-      if (!reqs || !reqs.length) {
+      if (reqsErr) {
+        document.getElementById('requestsTable').outerHTML = '<div class="empty-note">Something went wrong loading your requests — refresh to try again.</div>';
+      } else if (!reqs || !reqs.length) {
         document.getElementById('requestsTable').outerHTML = '<div class="empty-note">No service requests yet — submit one any time from Request a Service.</div>';
       } else {
         const body = document.getElementById('requestsBody');
@@ -241,10 +243,12 @@
       }
 
       // Activity feed
-      const { data: acts } = await sb.from('activity')
+      const { data: acts, error: actsErr } = await sb.from('activity')
         .select('*').eq('client_id', client.id).order('created_at', { ascending: false });
 
-      if (!acts || !acts.length) {
+      if (actsErr) {
+        document.getElementById('activityList').outerHTML = '<div class="empty-note">Something went wrong loading your activity — refresh to try again.</div>';
+      } else if (!acts || !acts.length) {
         document.getElementById('activityList').outerHTML = '<div class="empty-note">No activity yet.</div>';
       } else {
         const list = document.getElementById('activityList');

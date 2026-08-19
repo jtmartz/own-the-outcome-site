@@ -122,41 +122,48 @@
       btn.disabled = true;
       btn.textContent = 'Logging in…';
 
-      var email = document.getElementById('email').value.trim();
-      var password = document.getElementById('password').value;
+      try {
+        var email = document.getElementById('email').value.trim();
+        var password = document.getElementById('password').value;
 
-      var { data, error } = await sb.auth.signInWithPassword({ email: email, password: password });
+        var { data, error } = await sb.auth.signInWithPassword({ email: email, password: password });
 
-      if (error) {
-        errEl.textContent = 'Couldn\'t log in — check your email and password and try again.';
+        if (error) {
+          errEl.textContent = 'Couldn\'t log in — check your email and password and try again.';
+          errEl.classList.add('show');
+          btn.disabled = false;
+          btn.textContent = 'Log In';
+          return;
+        }
+
+        var uid = data.user.id;
+
+        // Admin account?
+        var { data: admin } = await sb.from('admins').select('id').eq('id', uid).maybeSingle();
+        if (admin) {
+          window.location.href = 'admin.html';
+          return;
+        }
+
+        // Client account?
+        var { data: client } = await sb.from('clients').select('care_plan_active').eq('id', uid).maybeSingle();
+        if (client) {
+          window.location.href = client.care_plan_active ? 'customer-portal.html' : 'customer-portal-standard.html';
+          return;
+        }
+
+        // Neither — no portal access set up for this login yet.
+        await sb.auth.signOut();
+        errEl.textContent = 'This account isn\'t linked to a client or admin profile yet. Reach out and we\'ll get it set up.';
         errEl.classList.add('show');
         btn.disabled = false;
         btn.textContent = 'Log In';
-        return;
+      } catch (err) {
+        errEl.textContent = 'Could not reach the server. Check your connection and try again.';
+        errEl.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Log In';
       }
-
-      var uid = data.user.id;
-
-      // Admin account?
-      var { data: admin } = await sb.from('admins').select('id').eq('id', uid).maybeSingle();
-      if (admin) {
-        window.location.href = 'admin.html';
-        return;
-      }
-
-      // Client account?
-      var { data: client } = await sb.from('clients').select('care_plan_active').eq('id', uid).maybeSingle();
-      if (client) {
-        window.location.href = client.care_plan_active ? 'customer-portal.html' : 'customer-portal-standard.html';
-        return;
-      }
-
-      // Neither — no portal access set up for this login yet.
-      await sb.auth.signOut();
-      errEl.textContent = 'This account isn\'t linked to a client or admin profile yet. Reach out and we\'ll get it set up.';
-      errEl.classList.add('show');
-      btn.disabled = false;
-      btn.textContent = 'Log In';
     });
   </script>
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Message Us — Own the Outcome</title>
+<title>Care Plan — Own the Outcome</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='100' fill='%23201F1B'/%3E%3Ctext x='100' y='128' font-family='Georgia,serif' font-style='italic' font-weight='500' font-size='82' fill='%23FBF8F2' text-anchor='middle'%3EO%3Ctspan fill='%23DD7A45' font-family='Arial,sans-serif' font-style='normal' font-weight='700' font-size='62'%3Eo%3C/tspan%3E%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,6 +17,10 @@
     --muted: #7A776C;
     --line: #E6E0D2;
     --rust: #B14A2C;
+    --good: #4B6A47;
+    --good-bg: #EAF0E7;
+    --bad: #B14A2C;
+    --bad-bg: #F7E9E4;
     --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
     --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
@@ -26,10 +30,6 @@
     background: var(--cream); -webkit-font-smoothing: antialiased;
   }
   a { color: inherit; }
-  .badge-note {
-    text-align: center; font-size: 12.5px; color: var(--muted); background: #F1ECE0;
-    border-bottom: 1px solid var(--line); padding: 8px 16px;
-  }
 
   header.site { background: var(--paper); border-bottom: 1px solid var(--line); }
   .header-inner {
@@ -42,17 +42,6 @@
   .header-actions { display: flex; align-items: center; gap: 20px; }
   .client-name { font-size: 14px; color: var(--ink-soft); font-weight: 500; }
   .logout { text-decoration: none; font-size: 14px; color: var(--muted); border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px; cursor: pointer; background: none; font-family: var(--sans); }
-  .btn:disabled { opacity: 0.6; cursor: default; }
-  .success-note {
-    display: none; text-align: center; font-size: 13.5px; color: #4B6A47; background: #EAF0E7;
-    border-radius: 3px; padding: 12px 14px; margin-top: 18px;
-  }
-  .success-note.show { display: block; }
-  .error-note {
-    display: none; text-align: center; font-size: 13.5px; color: var(--rust); background: #F7E9E4;
-    border-radius: 3px; padding: 12px 14px; margin-top: 18px;
-  }
-  .error-note.show { display: block; }
   .logout:hover { border-color: var(--ink); color: var(--ink); }
 
   .portal-nav { background: var(--paper); border-bottom: 1px solid var(--line); }
@@ -64,34 +53,47 @@
   .portal-nav a:hover { color: var(--ink); }
   .portal-nav a.active { color: var(--ink); border-color: var(--rust); }
 
-  .page-head { padding: 48px 32px 8px; max-width: 720px; margin: 0 auto; }
+  .page-head { padding: 48px 32px 8px; max-width: 720px; margin: 0 auto; text-align: center; }
   .page-head .eyebrow {
     font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--rust); margin: 0 0 12px;
   }
-  .page-head h1 { font-family: var(--serif); font-weight: 500; font-size: 32px; color: var(--ink); margin: 0 0 6px; letter-spacing: -0.01em; }
-  .page-head p { color: var(--muted); margin: 0; font-size: 15.5px; }
+  .page-head h1 { font-family: var(--serif); font-weight: 500; font-size: 34px; color: var(--ink); margin: 0 0 6px; letter-spacing: -0.01em; }
+  .page-head p { color: var(--muted); margin: 0 auto; font-size: 15.5px; max-width: 56ch; }
 
   section { padding: 32px 32px 90px; max-width: 720px; margin: 0 auto; }
 
   .card { background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 36px; }
+  .price-line { text-align: center; margin-bottom: 26px; }
+  .price-amount { font-family: var(--serif); font-weight: 600; font-size: 34px; color: var(--ink); }
+  .price-label { font-size: 13.5px; color: var(--muted); }
 
-  .field-label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-soft); margin: 0 0 6px; }
-  .field-input {
-    width: 100%; font-family: var(--sans); font-size: 14.5px; color: var(--ink);
-    background: var(--cream); border: 1px solid var(--line); border-radius: 3px; padding: 12px 14px; resize: vertical;
-  }
-  .field-input:focus { outline: none; border-color: var(--rust); }
+  .plan-list { list-style: none; margin: 0 0 28px; padding: 0; }
+  .plan-list li { display: flex; align-items: flex-start; gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); font-size: 14.5px; color: var(--ink-soft); }
+  .plan-list li:first-child { border-top: none; }
+  .plan-list .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rust); flex: none; margin-top: 6px; }
+  .plan-list strong { color: var(--ink); }
 
   .btn {
     display: inline-flex; align-items: center; justify-content: center; width: 100%;
     background: var(--ink); color: var(--cream); padding: 13px 24px; border-radius: 3px;
     text-decoration: none; font-weight: 600; font-size: 15px; border: 1px solid var(--ink);
-    cursor: pointer; font-family: var(--sans); margin-top: 22px;
+    cursor: pointer; font-family: var(--sans);
     transition: background .15s ease, border-color .15s ease;
   }
   .btn:hover { background: var(--rust); border-color: var(--rust); }
+  .btn:disabled { opacity: 0.6; cursor: default; }
 
   .form-note { text-align: center; font-size: 13px; color: var(--muted); margin: 16px 0 0; }
+  .success-note {
+    display: none; text-align: center; font-size: 13.5px; color: var(--good); background: var(--good-bg);
+    border-radius: 3px; padding: 12px 14px; margin-top: 18px;
+  }
+  .success-note.show { display: block; }
+  .error-note {
+    display: none; text-align: center; font-size: 13.5px; color: var(--bad); background: var(--bad-bg);
+    border-radius: 3px; padding: 12px 14px; margin-top: 18px;
+  }
+  .error-note.show { display: block; }
 
   footer.portal-footer { text-align: center; padding: 32px; font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); }
 </style>
@@ -126,21 +128,27 @@
   </nav>
 
   <div class="page-head">
-    <p class="eyebrow">Message Us</p>
-    <h1>Send us a note</h1>
-    <p>Ask a question, flag an issue, or just tell us what's on your mind — a real person reads every message.</p>
+    <p class="eyebrow">Care Plan</p>
+    <h1>Keep it running, and keep current</h1>
+    <p>You already own your build. The Care Plan keeps it monitored, gives you a monthly look at how it's performing, and keeps you in the loop on what's new in AI worth knowing about.</p>
   </div>
 
   <section>
     <div class="card">
-      <form class="msg-form" id="msgForm">
-        <label class="field-label" for="msg-body">Your message</label>
-        <textarea class="field-input" id="msg-body" rows="8" placeholder="What's up?" required></textarea>
-        <button class="btn" type="submit" id="msgSubmitBtn">Send Message</button>
-        <p class="success-note" id="msgSuccess">Sent — a real person will get back to you within a business day.</p>
-        <p class="error-note" id="msgError"></p>
-      </form>
-      <p class="form-note">We typically respond within a business day.</p>
+      <div class="price-line">
+        <div class="price-amount">$<span id="planPrice">99</span><span style="font-size:16px; color:var(--muted); font-weight:400;">/mo</span></div>
+        <div class="price-label">cancel any time</div>
+      </div>
+      <ul class="plan-list">
+        <li><span class="dot"></span><span><strong>Performance report</strong> — a monthly look at how your build is actually performing.</span></li>
+        <li><span class="dot"></span><span><strong>AI update</strong> — a short monthly briefing on new AI tools worth knowing about.</span></li>
+        <li><span class="dot"></span><span><strong>Maintenance, on us</strong> — ongoing monitoring and small fixes, no separate invoice.</span></li>
+        <li><span class="dot"></span><span><strong>20% off new builds</strong> — applied automatically on any new tool or integration package.</span></li>
+      </ul>
+      <button class="btn" type="button" id="requestBtn">Request to Subscribe</button>
+      <p class="success-note" id="requestSuccess">Got it — we'll follow up to get you set up and confirm billing.</p>
+      <p class="error-note" id="requestError"></p>
+      <p class="form-note">Billing isn't self-service yet — request it here and we'll follow up personally to get you set up.</p>
     </div>
   </section>
 
@@ -156,38 +164,43 @@
     (async function () {
       currentClient = await requireClient();
       if (!currentClient) return;
-      document.getElementById('dashboardNavLink').href = currentClient.care_plan_active ? 'customer-portal.html' : 'customer-portal-standard.html';
+
+      if (currentClient.care_plan_active) {
+        window.location.href = 'customer-portal.html';
+        return;
+      }
+
+      document.getElementById('dashboardNavLink').href = 'customer-portal-standard.html';
+      document.getElementById('planPrice').textContent = currentClient.care_plan_price || 99;
     })();
 
-    document.getElementById('msgForm').addEventListener('submit', async function (e) {
-      e.preventDefault();
+    document.getElementById('requestBtn').addEventListener('click', async function () {
       if (!currentClient) return;
-      const btn = document.getElementById('msgSubmitBtn');
-      const body = document.getElementById('msg-body').value.trim();
-      if (!body) return;
+      const btn = document.getElementById('requestBtn');
+      const successEl = document.getElementById('requestSuccess');
+      const errEl = document.getElementById('requestError');
+      errEl.classList.remove('show');
 
       btn.disabled = true;
       btn.textContent = 'Sending…';
-      document.getElementById('msgError').classList.remove('show');
 
       const { error } = await sb.from('inquiries').insert({
         client_id: currentClient.id,
-        type: 'message',
-        body: body,
+        type: 'plan_change',
+        body: 'Requested to subscribe to the Care Plan.',
         email: currentClient.email,
         business_name: currentClient.business_name
       });
 
       if (!error) {
-        document.getElementById('msgForm').reset();
-        document.getElementById('msgSuccess').classList.add('show');
+        successEl.classList.add('show');
+        btn.textContent = 'Request Sent';
       } else {
-        const errEl = document.getElementById('msgError');
-        errEl.textContent = 'Something went wrong and this didn\'t send — try again, or reach out directly.';
+        errEl.textContent = 'Something went wrong sending this — try again, or reach out directly.';
         errEl.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Request to Subscribe';
       }
-      btn.disabled = false;
-      btn.textContent = 'Send Message';
     });
   </script>
 

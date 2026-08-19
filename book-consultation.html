@@ -294,7 +294,7 @@
   </section>
 
   <div class="bottom-bar">
-    OWN THE OUTCOME  ·  [PHONE]  ·  [EMAIL]  ·  [CITY / REGION]
+    OWN THE OUTCOME  ·  hello@owntheoutcome.com
   </div>
 
   <script>
@@ -321,11 +321,17 @@
 
     async function loadSlots() {
       var container = document.getElementById('slotDays');
+      // Build from/to using the visitor's LOCAL date, not toISOString() (which converts
+      // to UTC first) — otherwise this can silently shift the whole 21-day window by a
+      // day, or drop today's remaining slots, for anyone west of UTC (all of the US).
+      function localDateStr(d) {
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      }
       var today = new Date();
-      var from = today.toISOString().slice(0, 10);
+      var from = localDateStr(today);
       var toDate = new Date(today);
       toDate.setDate(toDate.getDate() + 21);
-      var to = toDate.toISOString().slice(0, 10);
+      var to = localDateStr(toDate);
 
       var { data, error } = await sb.rpc('get_open_slots', { p_from: from, p_to: to });
 
@@ -347,7 +353,7 @@
         var day = byDay[key];
         var rowHtml = day.slots.map(function (iso) {
           var d = new Date(iso);
-          return '<button type="button" class="slot-btn" data-iso="' + iso + '">' + fmtSlotTime(d) + '</button>';
+          return '<button type="button" class="slot-btn" data-iso="' + escapeHtml(iso) + '">' + fmtSlotTime(d) + '</button>';
         }).join('');
         return '<div><p class="slot-day-label">' + fmtDayHeading(day.date) + '</p><div class="slot-row">' + rowHtml + '</div></div>';
       }).join('');

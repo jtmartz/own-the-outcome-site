@@ -305,6 +305,7 @@
       <button class="filter-btn" data-type="service_request">Service Request</button>
       <button class="filter-btn" data-type="maintenance">Maintenance</button>
       <button class="filter-btn" data-type="message">Message</button>
+      <button class="filter-btn" data-type="plan_change">Plan Change</button>
     </div>
     <div class="filter-row" id="statusFilters">
       <button class="filter-btn active" data-status="all">All statuses</button>
@@ -415,6 +416,7 @@
   <script src="sb.js"></script>
   <script>
     let clientsCache = [];
+    let pendingCache = [];
     let leadsCache = [];
     let activeLeadStageFilter = 'all';
     let quotesCache = [];
@@ -473,7 +475,8 @@
       const contact = document.getElementById('nc-contact').value.trim();
       const email = document.getElementById('nc-email').value.trim();
       const phone = document.getElementById('nc-phone').value.trim();
-      const price = parseFloat(document.getElementById('nc-price').value) || 99;
+      const priceRaw = parseFloat(document.getElementById('nc-price').value);
+      const price = (isNaN(priceRaw) || priceRaw < 0) ? 99 : priceRaw;
       const active = document.getElementById('nc-active').checked;
 
       if (!business || !email) {
@@ -481,8 +484,12 @@
         errEl.style.display = 'block';
         return;
       }
+      if (emailAlreadyUsed(email) && !confirm('There is already a client or pending invite using ' + email + '. Create another one anyway?')) {
+        return;
+      }
 
       const btn = document.getElementById('nc-submit');
+      if (btn.disabled) return;
       btn.disabled = true; btn.textContent = 'Generating…';
 
       const code = genLoginCode();
@@ -551,13 +558,24 @@
 
     async function loadPending() {
       const { data } = await sb.from('pending_clients').select('*').order('created_at', { ascending: false });
+      pendingCache = data || [];
       const list = document.getElementById('pendingList');
       const title = document.getElementById('pendingTitle');
       const hint = document.getElementById('pendingHint');
-      if (!data || !data.length) { list.innerHTML = ''; title.style.display = 'none'; hint.style.display = 'none'; return; }
+      if (!pendingCache.length) { list.innerHTML = ''; title.style.display = 'none'; hint.style.display = 'none'; return; }
       title.style.display = 'block';
       hint.style.display = 'block';
-      list.innerHTML = data.map(pendingCardHTML).join('');
+      list.innerHTML = pendingCache.map(pendingCardHTML).join('');
+    }
+
+    // Checks both real clients and unredeemed invites for a matching email (case-insensitive).
+    // Used to warn before creating a second invite/login for someone who already has one.
+    function emailAlreadyUsed(email) {
+      const needle = (email || '').trim().toLowerCase();
+      if (!needle) return false;
+      const inClients = clientsCache.some(function (c) { return (c.email || '').toLowerCase() === needle; });
+      const inPending = pendingCache.some(function (p) { return (p.email || '').toLowerCase() === needle; });
+      return inClients || inPending;
     }
 
     async function cancelPending(id) {
@@ -722,11 +740,17 @@
 
     async function saveClient(id) {
       const statusEl = document.getElementById('e-status-' + id);
+      const priceRaw = parseFloat(document.getElementById('e-price-' + id).value);
+      if (isNaN(priceRaw) || priceRaw < 0) {
+        statusEl.style.display = 'block';
+        statusEl.textContent = 'Care Plan price can\'t be negative.';
+        return;
+      }
       const payload = {
         business_name: document.getElementById('e-business-' + id).value.trim(),
         contact_name: document.getElementById('e-contact-' + id).value.trim(),
         phone: document.getElementById('e-phone-' + id).value.trim(),
-        care_plan_price: parseFloat(document.getElementById('e-price-' + id).value) || 0,
+        care_plan_price: priceRaw,
         care_plan_active: document.getElementById('e-active-' + id).checked,
         next_billing_date: document.getElementById('e-billing-' + id).value || null,
         next_update_date: document.getElementById('e-update-' + id).value || null
@@ -739,14 +763,15 @@
 
     async function deleteClient(id) {
       if (!confirm('Delete this client and all their tools, requests, and activity? This cannot be undone.')) return;
-      await sb.from('clients').delete().eq('id', id);
+      const { error } = await sb.from('clients').delete().eq('id', id);
+      if (error) { alert('Could not delete client: ' + error.message); return; }
       await loadClients();
     }
 
     async function addTool(clientId) {
       const name = document.getElementById('nt-name-' + clientId).value.trim();
       if (!name) return;
-      await sb.from('tools').insert({
+      const { error } = await sb.from('tools').insert({
         client_id: clientId,
         name: name,
         category: document.getElementById('nt-category-' + clientId).value.trim(),
@@ -756,28 +781,33 @@
         documentation_url: document.getElementById('nt-docs-' + clientId).value.trim(),
         description: document.getElementById('nt-desc-' + clientId).value.trim()
       });
+      if (error) { alert('Could not add tool: ' + error.message); return; }
       await renderClientDetail(clientId);
     }
 
     async function updateTool(toolId, field, value) {
       const payload = {}; payload[field] = value;
-      await sb.from('tools').update(payload).eq('id', toolId);
+      const { error } = await sb.from('tools').update(payload).eq('id', toolId);
+      if (error) alert('Could not save that change: ' + error.message + ' (reload to see the actual saved value)');
     }
 
     async function deleteTool(toolId, clientId) {
-      await sb.from('tools').delete().eq('id', toolId);
+      const { error } = await sb.from('tools').delete().eq('id', toolId);
+      if (error) { alert('Could not delete tool: ' + error.message); return; }
       await renderClientDetail(clientId);
     }
 
     async function addActivity(clientId) {
       const text = document.getElementById('na-text-' + clientId).value.trim();
       if (!text) return;
-      await sb.from('activity').insert({ client_id: clientId, text: text });
+      const { error } = await sb.from('activity').insert({ client_id: clientId, text: text });
+      if (error) { alert('Could not add update: ' + error.message); return; }
       await renderClientDetail(clientId);
     }
 
     async function deleteActivity(activityId, clientId) {
-      await sb.from('activity').delete().eq('id', activityId);
+      const { error } = await sb.from('activity').delete().eq('id', activityId);
+      if (error) { alert('Could not delete update: ' + error.message); return; }
       await renderClientDetail(clientId);
     }
 
@@ -799,7 +829,7 @@
       });
     });
 
-    const TYPE_LABELS = { consultation: 'Consultation request', service_request: 'Service request', maintenance: 'Maintenance request', message: 'Message' };
+    const TYPE_LABELS = { consultation: 'Consultation request', service_request: 'Service request', maintenance: 'Maintenance request', message: 'Message', plan_change: 'Plan change request' };
 
     function inquiryFieldsHTML(q) {
       if (q.type === 'consultation') {
@@ -852,9 +882,16 @@
       '</div>';
     }
 
+    // Guards every "Convert to Client" / "New Quote" action against a fast double-click
+    // creating two invites or two draft quotes for the same source record.
+    const actionInFlight = new Set();
+
     async function convertToClient(inquiryId) {
+      if (actionInFlight.has(inquiryId)) return;
       const q = inquiriesCache.find(function (i) { return i.id === inquiryId; });
       if (!q) return;
+      if (emailAlreadyUsed(q.email) && !confirm('There is already a client or pending invite using ' + q.email + '. Convert anyway?')) return;
+      actionInFlight.add(inquiryId);
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
       let code = 'OWN-';
       for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
@@ -868,9 +905,10 @@
         care_plan_price: 99,
         login_code: code
       });
-      if (insertErr) { alert('Could not convert: ' + insertErr.message); return; }
+      if (insertErr) { alert('Could not convert: ' + insertErr.message); actionInFlight.delete(inquiryId); return; }
 
       await sb.from('inquiries').update({ converted: true }).eq('id', inquiryId);
+      actionInFlight.delete(inquiryId);
       const item = inquiriesCache.find(function (i) { return i.id === inquiryId; });
       if (item) item.converted = true;
       renderInquiries();
@@ -894,7 +932,8 @@
 
     async function updateInquiry(id, field, value) {
       const payload = {}; payload[field] = value;
-      await sb.from('inquiries').update(payload).eq('id', id);
+      const { error } = await sb.from('inquiries').update(payload).eq('id', id);
+      if (error) { alert('Could not save that change: ' + error.message); return; }
       const item = inquiriesCache.find(function (q) { return q.id === id; });
       if (item) item[field] = value;
       renderInquiries();
@@ -902,7 +941,8 @@
 
     async function saveInquiryNotes(id) {
       const notes = document.getElementById('notes-' + id).value;
-      await sb.from('inquiries').update({ admin_notes: notes }).eq('id', id);
+      const { error } = await sb.from('inquiries').update({ admin_notes: notes }).eq('id', id);
+      if (error) alert('Could not save notes: ' + error.message);
     }
 
     // ---------- leads tab ----------
@@ -1001,7 +1041,8 @@
     }
 
     async function updateLeadStage(id, stage) {
-      await sb.from('leads').update({ stage: stage, updated_at: new Date().toISOString() }).eq('id', id);
+      const { error } = await sb.from('leads').update({ stage: stage, updated_at: new Date().toISOString() }).eq('id', id);
+      if (error) { alert('Could not save stage: ' + error.message); renderLeads(); return; }
       const item = leadsCache.find(function (l) { return l.id === id; });
       if (item) item.stage = stage;
       renderLeads();
@@ -1011,21 +1052,26 @@
       const item = leadsCache.find(function (l) { return l.id === id; });
       if (!item) return;
       const next = !item.contacted;
-      await sb.from('leads').update({ contacted: next, updated_at: new Date().toISOString() }).eq('id', id);
+      const { error } = await sb.from('leads').update({ contacted: next, updated_at: new Date().toISOString() }).eq('id', id);
+      if (error) { alert('Could not save: ' + error.message); return; }
       item.contacted = next;
       renderLeads();
     }
 
     async function deleteLead(id) {
       if (!confirm('Delete this lead? This cannot be undone.')) return;
-      await sb.from('leads').delete().eq('id', id);
+      const { error } = await sb.from('leads').delete().eq('id', id);
+      if (error) { alert('Could not delete lead: ' + error.message); return; }
       await loadLeads();
     }
 
     async function convertLeadToClient(leadId) {
+      if (actionInFlight.has(leadId)) return;
       const l = leadsCache.find(function (x) { return x.id === leadId; });
       if (!l) return;
       if (!l.email) { alert('This lead needs an email before it can become a client.'); return; }
+      if (emailAlreadyUsed(l.email) && !confirm('There is already a client or pending invite using ' + l.email + '. Convert anyway?')) return;
+      actionInFlight.add(leadId);
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
       let code = 'OWN-';
       for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
@@ -1039,9 +1085,10 @@
         care_plan_price: 99,
         login_code: code
       });
-      if (insertErr) { alert('Could not convert: ' + insertErr.message); return; }
+      if (insertErr) { alert('Could not convert: ' + insertErr.message); actionInFlight.delete(leadId); return; }
 
       await sb.from('leads').update({ converted: true }).eq('id', leadId);
+      actionInFlight.delete(leadId);
       l.converted = true;
       renderLeads();
       await loadPending();
@@ -1066,11 +1113,15 @@
         errEl.style.display = 'block';
         return;
       }
+      const btn = document.getElementById('nq-submit');
+      if (btn.disabled) return;
+      btn.disabled = true; btn.textContent = 'Creating…';
       await createQuoteRow({
         business_name: business,
         contact_name: document.getElementById('nq-contact').value.trim(),
         contact_email: document.getElementById('nq-email').value.trim()
       });
+      btn.disabled = false; btn.textContent = 'Create Draft';
       document.getElementById('addQuoteForm').style.display = 'none';
       ['nq-business','nq-contact','nq-email'].forEach(function (id) { document.getElementById(id).value = ''; });
     });
@@ -1230,7 +1281,9 @@
       const titleEl = document.getElementById('qi-title-' + quoteId);
       const title = titleEl.value.trim();
       if (!title) return;
-      const price = parseFloat(document.getElementById('qi-price-' + quoteId).value) || 0;
+      const priceRaw = parseFloat(document.getElementById('qi-price-' + quoteId).value);
+      if (priceRaw < 0) { alert('Price can\'t be negative.'); return; }
+      const price = isNaN(priceRaw) ? 0 : priceRaw;
       const desc = document.getElementById('qi-desc-' + quoteId).value.trim();
       const q = quotesCache.find(function (x) { return x.id === quoteId; });
       const sortOrder = q && q.quote_items ? q.quote_items.length : 0;
@@ -1325,9 +1378,12 @@
     }
 
     async function convertQuoteToClient(quoteId) {
+      if (actionInFlight.has(quoteId)) return;
       const q = quotesCache.find(function (x) { return x.id === quoteId; });
       if (!q) return;
       if (!q.contact_email) { alert('This quote needs a contact email before it can become a client.'); return; }
+      if (emailAlreadyUsed(q.contact_email) && !confirm('There is already a client or pending invite using ' + q.contact_email + '. Convert anyway?')) return;
+      actionInFlight.add(quoteId);
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
       let code = 'OWN-';
       for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
@@ -1342,9 +1398,10 @@
         login_code: code,
         quote_id: quoteId
       });
-      if (insertErr) { alert('Could not convert: ' + insertErr.message); return; }
+      if (insertErr) { alert('Could not convert: ' + insertErr.message); actionInFlight.delete(quoteId); return; }
 
       await sb.from('quotes').update({ converted: true }).eq('id', quoteId);
+      actionInFlight.delete(quoteId);
       q.converted = true;
       renderQuoteDetail(quoteId);
       await loadPending();
@@ -1512,11 +1569,13 @@
     async function toggleStandardSlot(day, hhmm, cell) {
       const isOpen = cell.classList.contains('open');
       if (isOpen) {
-        await sb.from('standard_slots').delete().eq('day_of_week', day).eq('start_time', hhmm);
+        const { error } = await sb.from('standard_slots').delete().eq('day_of_week', day).eq('start_time', hhmm);
+        if (error) { alert('Could not save: ' + error.message); return; }
         standardSet.delete(day + '-' + hhmm);
         cell.classList.remove('open');
       } else {
-        await sb.from('standard_slots').insert({ day_of_week: day, start_time: hhmm });
+        const { error } = await sb.from('standard_slots').insert({ day_of_week: day, start_time: hhmm });
+        if (error) { alert('Could not save: ' + error.message); return; }
         standardSet.add(day + '-' + hhmm);
         cell.classList.add('open');
       }
@@ -1624,7 +1683,7 @@
 
     document.getElementById('saveSettings').addEventListener('click', async function () {
       const status = document.getElementById('settingsStatus');
-      await sb.from('admin_settings').update({
+      const { error } = await sb.from('admin_settings').update({
         notify_email: document.getElementById('set-notify-email').value.trim(),
         timezone: document.getElementById('set-timezone').value,
         slot_minutes: parseInt(document.getElementById('set-slot-minutes').value) || 30,
@@ -1632,7 +1691,7 @@
         lead_hours: parseInt(document.getElementById('set-lead-hours').value) || 4
       }).eq('id', 1);
       status.style.display = 'block';
-      status.textContent = 'Saved.';
+      status.textContent = error ? ('Could not save: ' + error.message) : 'Saved.';
       setTimeout(function () { status.style.display = 'none'; }, 2500);
     });
 
