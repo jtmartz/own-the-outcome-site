@@ -517,7 +517,8 @@
         : '<button class="btn-outline small" onclick="activatePending(\'' + p.id + '\')" id="activate-' + p.id + '">Activate &amp; Send Code</button>';
       return '<div class="card" data-pending-id="' + p.id + '">' +
         '<div class="client-row" style="cursor:default;">' +
-          '<div class="client-row-main"><h3>' + escapeHtml(p.business_name) + '</h3><p>' + escapeHtml(p.email) + (p.phone ? ' · ' + escapeHtml(p.phone) : '') + '</p></div>' +
+          '<div class="client-row-main"><h3>' + escapeHtml(p.business_name) + '</h3><p>' + escapeHtml(p.email) + (p.phone ? ' · ' + escapeHtml(p.phone) : '') +
+            (p.quote_id ? ' · <a href="#" onclick="switchTab(\'quotes\'); openQuote(\'' + p.quote_id + '\'); return false;">From quote →</a>' : '') + '</p></div>' +
           '<div class="client-row-right">' +
             '<button class="btn-outline small" onclick="togglePendingInfo(\'' + p.id + '\')">Client Info</button>' +
             activateBtn +
@@ -630,6 +631,7 @@
       ]);
 
       el.innerHTML =
+        (c.quote_id ? '<p class="empty-note" style="text-align:left; padding:0 0 14px;">Originated from an accepted quote — <a href="#" onclick="switchTab(\'quotes\'); openQuote(\'' + c.quote_id + '\'); return false;">view it</a></p>' : '') +
         '<div class="field-grid">' +
           '<div><label class="field-label">Business name</label><input class="field-input" id="e-business-' + id + '" value="' + escapeHtml(c.business_name) + '"></div>' +
           '<div><label class="field-label">Contact name</label><input class="field-input" id="e-contact-' + id + '" value="' + escapeHtml(c.contact_name || '') + '"></div>' +
@@ -1216,6 +1218,11 @@
         '<button class="btn-outline small" style="margin-left:10px;" onclick="copyQuoteLink(\'' + id + '\', \'' + linkUrl + '\')" id="qlink-' + id + '">Copy Share Link</button>' +
         '<a class="btn-outline small" style="margin-left:10px;" href="' + linkUrl + '" target="_blank" rel="noopener">Preview</a>' +
         '<button class="btn-outline danger small" style="margin-left:10px;" onclick="deleteQuote(\'' + id + '\')">Delete</button>' +
+        (q.status === 'accepted'
+          ? (q.converted
+              ? ' <span class="status-pill muted" style="margin-left:10px;">Converted to client</span>'
+              : '<button class="btn-outline small" style="margin-left:10px;" onclick="convertQuoteToClient(\'' + id + '\')">Convert to Client</button>')
+          : '') +
         '<p class="empty-note" id="q-status-msg-' + id + '" style="display:none; padding:8px 0 0;"></p>';
     }
 
@@ -1317,6 +1324,34 @@
       renderQuotes();
     }
 
+    async function convertQuoteToClient(quoteId) {
+      const q = quotesCache.find(function (x) { return x.id === quoteId; });
+      if (!q) return;
+      if (!q.contact_email) { alert('This quote needs a contact email before it can become a client.'); return; }
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = 'OWN-';
+      for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
+
+      const { error: insertErr } = await sb.from('pending_clients').insert({
+        business_name: q.business_name,
+        contact_name: q.contact_name || '',
+        email: q.contact_email,
+        phone: '',
+        care_plan_active: false,
+        care_plan_price: 99,
+        login_code: code,
+        quote_id: quoteId
+      });
+      if (insertErr) { alert('Could not convert: ' + insertErr.message); return; }
+
+      await sb.from('quotes').update({ converted: true }).eq('id', quoteId);
+      q.converted = true;
+      renderQuoteDetail(quoteId);
+      await loadPending();
+      await loadDashAttention();
+      switchTab('clients');
+    }
+
     // ---------- dashboard tab ----------
     async function loadDashWeek() {
       const now = new Date();
@@ -1339,6 +1374,7 @@
         sb.from('pending_clients').select('*').is('activated_at', null).order('created_at', { ascending: true }),
         sb.from('inquiries').select('*').eq('status', 'new').order('created_at', { ascending: true })
       ]);
+      const acceptedQuotes = quotesCache.filter(function (q) { return q.status === 'accepted' && !q.converted; });
       const now = new Date();
       const items = [];
       (pending || []).forEach(function (p) {
@@ -1354,6 +1390,14 @@
           label: soon ? 'Consultation coming up, no reply yet' : 'New, no reply yet',
           meta: (TYPE_LABELS[q.type] || q.type) + ' · ' + fmtDateTime(q.created_at),
           action: '<button class="btn-outline small" onclick="switchTab(\'inbox\')">Go to Inbox</button>'
+        });
+      });
+      acceptedQuotes.forEach(function (q) {
+        items.push({
+          name: q.business_name,
+          label: 'Quote accepted — review & follow up',
+          meta: fmtMoney(quoteTotal(q)) + ' · Accepted ' + fmtDateTime(q.accepted_at || q.updated_at),
+          action: '<button class="btn-outline small" onclick="switchTab(\'quotes\'); openQuote(\'' + q.id + '\')">Go to Quotes</button>'
         });
       });
       const el = document.getElementById('dashAttentionList');
