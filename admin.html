@@ -1200,7 +1200,7 @@
           '<label class="field-label">Description</label><textarea class="field-input" id="qi-desc-' + id + '" rows="2" style="margin-bottom:10px;"></textarea>' +
           '<button class="btn-outline small" onclick="addQuoteItem(\'' + id + '\')">+ Add Line Item</button>' +
         '</div>' +
-        '<p style="text-align:right; font-weight:600; color:var(--ink); margin: 10px 0 20px;">Total: ' + fmtMoney(quoteTotal(q)) + '</p>' +
+        '<p id="q-total-' + id + '" style="text-align:right; font-weight:600; color:var(--ink); margin: 10px 0 20px;">Total: ' + fmtMoney(quoteTotal(q)) + '</p>' +
 
         '<div class="field-grid">' +
           '<div><label class="field-label">Timeline</label><input class="field-input" id="q-timeline-' + id + '" value="' + escapeHtml(q.timeline || '') + '" placeholder="e.g. 2–3 weeks"></div>' +
@@ -1227,14 +1227,39 @@
       const desc = document.getElementById('qi-desc-' + quoteId).value.trim();
       const q = quotesCache.find(function (x) { return x.id === quoteId; });
       const sortOrder = q && q.quote_items ? q.quote_items.length : 0;
-      const { error } = await sb.from('quote_items').insert({ quote_id: quoteId, title: title, description: desc, price: price, sort_order: sortOrder });
+      const { data, error } = await sb.from('quote_items').insert({ quote_id: quoteId, title: title, description: desc, price: price, sort_order: sortOrder }).select().single();
       if (error) { alert('Could not add line item: ' + error.message); return; }
-      await refreshQuote(quoteId);
+      if (q) { q.quote_items = q.quote_items || []; q.quote_items.push(data); }
+      updateQuoteItemsUI(quoteId);
+      document.getElementById('qi-title-' + quoteId).value = '';
+      document.getElementById('qi-price-' + quoteId).value = '';
+      document.getElementById('qi-desc-' + quoteId).value = '';
     }
 
     async function deleteQuoteItem(quoteId, itemId) {
       await sb.from('quote_items').delete().eq('id', itemId);
-      await refreshQuote(quoteId);
+      const q = quotesCache.find(function (x) { return x.id === quoteId; });
+      if (q) q.quote_items = (q.quote_items || []).filter(function (it) { return it.id !== itemId; });
+      updateQuoteItemsUI(quoteId);
+    }
+
+    // Surgical update: only touches the line-items list, total, and the collapsed
+    // card's summary line — leaves any other in-progress (unsaved) form fields alone.
+    function updateQuoteItemsUI(quoteId) {
+      const q = quotesCache.find(function (x) { return x.id === quoteId; });
+      if (!q) return;
+      const items = (q.quote_items || []).slice().sort(function (a, b) { return a.sort_order - b.sort_order; });
+      const itemsList = document.getElementById('q-items-' + quoteId);
+      if (itemsList) {
+        itemsList.innerHTML = items.length ? items.map(function (it) { return quoteItemMiniHTML(quoteId, it); }).join('') : '<li class="empty-note" style="padding:8px 0;">No line items yet.</li>';
+      }
+      const totalEl = document.getElementById('q-total-' + quoteId);
+      if (totalEl) totalEl.textContent = 'Total: ' + fmtMoney(quoteTotal(q));
+      const card = document.querySelector('.client-card[data-quote-id="' + quoteId + '"]');
+      if (card) {
+        const summary = card.querySelector('.client-row-main p');
+        if (summary) summary.textContent = fmtMoney(quoteTotal(q)) + ' · ' + fmtDateTime(q.created_at);
+      }
     }
 
     async function refreshQuote(quoteId) {
