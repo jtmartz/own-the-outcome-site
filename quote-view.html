@@ -205,7 +205,7 @@
     }
 
     function agreementHtml(q, total) {
-      const prepared = fmtDate(q.created_at);
+      const prepared = fmtDateTime(q.created_at);
       const timelineLine = q.timeline
         ? 'The estimated timeline for this engagement is: <strong>' + escapeHtml(q.timeline) + '</strong>.'
         : 'The timeline for this engagement will be confirmed once work begins.';
