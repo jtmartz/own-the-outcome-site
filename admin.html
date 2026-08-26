@@ -243,7 +243,7 @@
         <div><label class="field-label">Phone</label><input class="field-input" id="nc-phone" type="tel"></div>
       </div>
       <div class="field-grid">
-        <div><label class="field-label">Care Plan price ($/mo)</label><input class="field-input" id="nc-price" type="number" value="99"></div>
+        <div><label class="field-label">Care Plan price ($/mo)</label><input class="field-input" id="nc-price" type="number" value="250"></div>
         <div class="checkbox-row" style="margin-top: 24px;"><input type="checkbox" id="nc-active"><label for="nc-active">Care Plan active</label></div>
       </div>
       <button class="btn" id="nc-submit" type="button">Generate Company Code</button>
@@ -292,6 +292,12 @@
       <div class="field-grid">
         <div><label class="field-label">Zoom link (your personal meeting room)</label><input class="field-input" id="set-zoom-link" placeholder="https://zoom.us/j/..."></div>
         <div><label class="field-label">Minimum notice (hours)</label><input class="field-input" type="number" id="set-lead-hours" value="4"></div>
+      </div>
+      <div class="field-grid" style="margin-top:4px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <input type="checkbox" id="set-care-plan-open" style="width:16px; height:16px;">
+          <label class="field-label" for="set-care-plan-open" style="margin:0;">Care Plan subscriptions visible to clients — off hides the Subscribe option everywhere in the portal until you're ready to manage it</label>
+        </div>
       </div>
       <button class="btn-outline" id="saveSettings" type="button">Save Settings</button>
       <p class="empty-note" id="settingsStatus" style="display:none; padding:8px 0 0;"></p>
@@ -513,7 +519,7 @@
 
       document.getElementById('addClientForm').style.display = 'none';
       ['nc-business','nc-contact','nc-email','nc-phone'].forEach(function(id){ document.getElementById(id).value=''; });
-      document.getElementById('nc-price').value = 99;
+      document.getElementById('nc-price').value = 250;
       document.getElementById('nc-active').checked = false;
       await loadPending();
     });
@@ -902,7 +908,7 @@
         email: q.email,
         phone: q.phone || '',
         care_plan_active: false,
-        care_plan_price: 99,
+        care_plan_price: 250,
         login_code: code
       });
       if (insertErr) { alert('Could not convert: ' + insertErr.message); actionInFlight.delete(inquiryId); return; }
@@ -1082,7 +1088,7 @@
         email: l.email,
         phone: l.phone || '',
         care_plan_active: false,
-        care_plan_price: 99,
+        care_plan_price: 250,
         login_code: code
       });
       if (insertErr) { alert('Could not convert: ' + insertErr.message); actionInFlight.delete(leadId); return; }
@@ -1394,7 +1400,7 @@
         email: q.contact_email,
         phone: '',
         care_plan_active: false,
-        care_plan_price: 99,
+        care_plan_price: 250,
         login_code: code,
         quote_id: quoteId
       });
@@ -1679,6 +1685,7 @@
       document.getElementById('set-slot-minutes').value = data.slot_minutes || 30;
       document.getElementById('set-zoom-link').value = data.zoom_link || '';
       document.getElementById('set-lead-hours').value = data.lead_hours || 4;
+      document.getElementById('set-care-plan-open').checked = !!data.care_plan_subscriptions_enabled;
     }
 
     document.getElementById('saveSettings').addEventListener('click', async function () {
@@ -1688,7 +1695,8 @@
         timezone: document.getElementById('set-timezone').value,
         slot_minutes: parseInt(document.getElementById('set-slot-minutes').value) || 30,
         zoom_link: document.getElementById('set-zoom-link').value.trim(),
-        lead_hours: parseInt(document.getElementById('set-lead-hours').value) || 4
+        lead_hours: parseInt(document.getElementById('set-lead-hours').value) || 4,
+        care_plan_subscriptions_enabled: document.getElementById('set-care-plan-open').checked
       }).eq('id', 1);
       status.style.display = 'block';
       status.textContent = error ? ('Could not save: ' + error.message) : 'Saved.';

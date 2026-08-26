@@ -209,7 +209,7 @@
     </a>
   </div>
 
-  <section>
+  <section id="carePlanSection">
     <h2 class="section-title">Care Plan</h2>
     <div class="card plan-card perks-card locked" id="perksCard">
       <div class="plan-top">
@@ -249,6 +249,12 @@
 
       document.getElementById('welcomeHeading').textContent = 'Welcome back, ' + (client.contact_name || client.business_name);
       document.getElementById('planPriceStd').textContent = client.care_plan_price;
+
+      // Care Plan signups are off by default until Jeff turns them on in Settings.
+      const { data: subscriptionsOpen } = await sb.rpc('care_plan_subscriptions_open');
+      if (!subscriptionsOpen) {
+        document.getElementById('carePlanSection').style.display = 'none';
+      }
     })();
   </script>
 
