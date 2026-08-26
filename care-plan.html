@@ -182,7 +182,22 @@
       errEl.classList.remove('show');
 
       btn.disabled = true;
-      btn.textContent = 'Sending…';
+      btn.textContent = 'Loading…';
+
+      // Try real Stripe Checkout first. If payments aren't configured yet, fall
+      // back to the manual request-queue flow so this button always does something.
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        const res = await fetch(
+          'https://wfwcfdwozjfgyboajoya.supabase.co/functions/v1/stripe-checkout',
+          { method: 'POST', headers: { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' } }
+        );
+        const result = await res.json();
+        if (result.ok && result.url) {
+          window.location.href = result.url;
+          return;
+        }
+      } catch (e) { /* fall through to manual request below */ }
 
       const { error } = await sb.from('inquiries').insert({
         client_id: currentClient.id,

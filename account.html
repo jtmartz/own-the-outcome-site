@@ -143,8 +143,12 @@
       <h2>Manage Subscription</h2>
       <p class="card-sub" id="planStatusLine">—</p>
       <div id="planActiveActions" style="display:none;">
-        <button class="btn-text-muted" type="button" id="cancelPlanBtn">Cancel Subscription</button>
-        <p class="note" id="cancelPlanNote"></p>
+        <button class="btn" type="button" id="manageBillingBtn" style="margin-top:0;">Manage Payment &amp; Subscription</button>
+        <p class="note" id="manageBillingNote"></p>
+        <div style="margin-top:18px;">
+          <button class="btn-text-muted" type="button" id="cancelPlanBtn">Cancel Subscription</button>
+          <p class="note" id="cancelPlanNote"></p>
+        </div>
       </div>
       <div id="planInactiveActions" style="display:none;">
         <a class="btn" href="care-plan.html">Explore the Care Plan</a>
@@ -176,6 +180,34 @@
         document.getElementById('planInactiveActions').style.display = 'block';
       }
     })();
+
+    document.getElementById('manageBillingBtn').addEventListener('click', async function () {
+      const btn = document.getElementById('manageBillingBtn');
+      const note = document.getElementById('manageBillingNote');
+      note.className = 'note';
+      btn.disabled = true;
+      btn.textContent = 'Loading…';
+
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        const res = await fetch(
+          'https://wfwcfdwozjfgyboajoya.supabase.co/functions/v1/stripe-billing-portal',
+          { method: 'POST', headers: { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' } }
+        );
+        const result = await res.json();
+        if (result.ok && result.url) {
+          window.location.href = result.url;
+          return;
+        }
+        note.textContent = result.reason || 'Payment management isn\'t available yet — reach out directly.';
+        note.classList.add('show', 'bad');
+      } catch (e) {
+        note.textContent = 'Could not reach the server. Check your connection and try again.';
+        note.classList.add('show', 'bad');
+      }
+      btn.disabled = false;
+      btn.textContent = 'Manage Payment & Subscription';
+    });
 
     document.getElementById('cancelPlanBtn').addEventListener('click', async function () {
       if (!currentClient) return;
