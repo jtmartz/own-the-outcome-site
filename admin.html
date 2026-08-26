@@ -1271,6 +1271,9 @@
         '<label class="field-label">Internal notes (not shown to client)</label>' +
         '<textarea class="field-input" id="q-notes-' + id + '" rows="2" style="margin-bottom:14px;">' + escapeHtml(q.notes || '') + '</textarea>' +
 
+        (q.status === 'accepted' && q.signed_name
+          ? '<p class="empty-note" style="text-align:left; padding:0 0 14px; color:var(--good);">Signed by <strong>' + escapeHtml(q.signed_name) + '</strong> on ' + fmtDateTime(q.accepted_at) + (q.signed_ip ? ' from IP ' + escapeHtml(q.signed_ip) : '') + '</p>'
+          : '') +
         '<button class="btn-outline" onclick="saveQuote(\'' + id + '\')">Save Quote</button>' +
         '<button class="btn-outline small" style="margin-left:10px;" onclick="copyQuoteLink(\'' + id + '\', \'' + linkUrl + '\')" id="qlink-' + id + '">Copy Share Link</button>' +
         '<a class="btn-outline small" style="margin-left:10px;" href="' + linkUrl + '" target="_blank" rel="noopener">Preview</a>' +

@@ -66,11 +66,32 @@
 
   .empty-note { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 15px; }
 
+  .agreement-text { max-height: 340px; overflow-y: auto; padding-right: 6px; border: 1px solid var(--line); border-radius: 3px; padding: 16px; }
+  .agreement-text p { margin: 0 0 10px; font-size: 13.5px; color: var(--ink-soft); }
+  .agreement-text p:last-child { margin-bottom: 0; }
+  .agreement-text strong { color: var(--ink); }
+  .sign-row { margin-top: 20px; }
+  .sign-row label.field-label { display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .sign-input {
+    width: 100%; font-family: var(--serif); font-style: italic; font-size: 19px; color: var(--ink);
+    border: none; border-bottom: 2px solid var(--line); background: none; padding: 8px 2px;
+    font-family: var(--sans); font-style: normal;
+  }
+  .sign-input:focus { outline: none; border-bottom-color: var(--rust); }
+  .sign-check { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; font-size: 13px; color: var(--ink-soft); }
+  .sign-check input { margin-top: 3px; flex: none; }
+  .sign-note { font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .signed-block { text-align: center; padding: 10px 4px; }
+  .signed-block .signed-name { font-family: var(--serif); font-style: italic; font-size: 20px; color: var(--ink); }
+  .signed-block .signed-meta { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+
   @media print {
     .actions { display: none; }
     body { background: var(--paper); }
     header.site { border-bottom: 1px solid var(--line); }
     .card { border: none; padding: 0; margin-bottom: 24px; }
+    .agreement-text { max-height: none; overflow: visible; border: none; padding: 0; }
+    .sign-row { display: none; }
   }
 </style>
 </head>
@@ -166,50 +187,107 @@
         html += '<div class="card"><h2>Next steps</h2><p>' + escapeHtml(q.next_steps).replace(/\n/g, '</p><p>') + '</p></div>';
       }
 
+      if (q.status !== 'declined') {
+        html += '<div class="card"><h2>Customer Agreement</h2>' + agreementHtml(q, total) +
+          '<div id="signArea">' + signAreaHtml(q) + '</div>' +
+        '</div>';
+      }
+
       html += '<div class="actions" id="actionsRow">';
-      if (q.status === 'accepted') {
-        html += '<p class="accepted-note" style="width:100%;">You accepted this quote — we\'ll be in touch to get started.</p>';
-      } else if (q.status !== 'declined') {
-        html += '<button class="btn" id="acceptBtn">Accept This Quote</button>';
+      if (q.status === 'declined') {
+        html += '<p class="accepted-note" style="width:100%; color:var(--bad); background:var(--bad-bg);">This quote was declined.</p>';
       }
       html += '<button class="btn-outline" onclick="window.print()">Print / Save as PDF</button>';
       html += '</div>';
 
       content.innerHTML = html;
+      wireSignForm(q, token);
+    }
 
-      const acceptBtn = document.getElementById('acceptBtn');
-      if (acceptBtn) {
-        acceptBtn.addEventListener('click', async function () {
-          acceptBtn.disabled = true;
-          acceptBtn.textContent = 'Accepting…';
-          let ok, error;
-          try {
-            ({ data: ok, error } = await sb.rpc('mark_quote_accepted', { p_token: token }));
-          } catch (e) {
-            error = e;
-          }
-          if (ok && !error) {
-            document.getElementById('actionsRow').innerHTML =
-              '<p class="accepted-note" style="width:100%;">Thanks — you accepted this quote. We\'ll be in touch to get started.</p>' +
-              '<button class="btn-outline" onclick="window.print()">Print / Save as PDF</button>';
-            // Best-effort notification — .catch (not try/catch) so it actually catches
-            // a rejection from this un-awaited call instead of silently doing nothing.
-            sb.functions.invoke('send-quote-accepted-email', { body: { quote_id: q.id } }).catch(function () {});
-          } else {
-            acceptBtn.disabled = false;
-            acceptBtn.textContent = 'Accept This Quote';
-            const row = document.getElementById('actionsRow');
-            let errNote = row.querySelector('.accept-error');
-            if (!errNote) {
-              errNote = document.createElement('p');
-              errNote.className = 'accept-error';
-              errNote.style.cssText = 'width:100%; text-align:center; color:var(--bad); font-size:13.5px;';
-              row.appendChild(errNote);
-            }
-            errNote.textContent = 'Something went wrong — try again, or reach out and we\'ll confirm it manually.';
-          }
-        });
+    function agreementHtml(q, total) {
+      const prepared = fmtDate(q.created_at);
+      const timelineLine = q.timeline
+        ? 'The estimated timeline for this engagement is: <strong>' + escapeHtml(q.timeline) + '</strong>.'
+        : 'The timeline for this engagement will be confirmed once work begins.';
+      return '<div class="agreement-text">' +
+        '<p>This Customer Agreement ("Agreement") is between <strong>Own the Outcome</strong> ("we," "us") and <strong>' + escapeHtml(q.business_name) + '</strong> ("Client"), effective as of the date this Agreement is signed below.</p>' +
+        '<p><strong>Scope of work.</strong> This Agreement covers the scope of work described in the proposal above, prepared ' + prepared + ', totaling ' + fmtMoney(total) + '. Any work outside this scope will be discussed and quoted separately before it begins.</p>' +
+        '<p><strong>Fees and payment.</strong> The total investment for this engagement is ' + fmtMoney(total) + '. Own the Outcome will invoice Client separately according to the payment terms stated on that invoice, which may include a deposit due before work begins. Payment is due within the timeframe stated on each invoice unless otherwise agreed in writing. Work may pause if payment becomes significantly overdue.</p>' +
+        '<p><strong>Timeline.</strong> ' + timelineLine + ' Timelines are estimates and may shift based on scope changes, Client responsiveness, or third-party dependencies outside our control.</p>' +
+        '<p><strong>Ownership.</strong> Once paid in full, Client owns the specific deliverables built for them under this Agreement. Own the Outcome retains the right to reuse general knowledge, techniques, and non-client-specific code or components developed in the course of this work.</p>' +
+        '<p><strong>Care and support.</strong> This Agreement covers the build described above only. Ongoing monitoring, updates, and support are available separately through the Own the Outcome Care Plan and are not included here unless stated in the proposal.</p>' +
+        '<p><strong>Confidentiality.</strong> Each party agrees to keep the other\'s confidential business information private and use it only to fulfill this engagement.</p>' +
+        '<p><strong>Cancellation.</strong> Either party may cancel this engagement with written notice. Client remains responsible for payment for work completed and expenses incurred up to the cancellation date; deposits already applied to work in progress are non-refundable.</p>' +
+        '<p><strong>Independent contractor.</strong> Own the Outcome performs this work as an independent contractor, not an employee, partner, or agent of Client.</p>' +
+        '<p><strong>Limitation of liability.</strong> Own the Outcome\'s total liability under this Agreement is limited to the amount Client actually paid for the work. Neither party is liable to the other for indirect, incidental, or consequential damages.</p>' +
+        '<p><strong>Governing law.</strong> This Agreement is governed by the laws of the State of [Your State], without regard to conflict-of-law principles.</p>' +
+        '<p><strong>Entire agreement.</strong> This Agreement, together with the proposal above, is the entire understanding between the parties regarding this engagement and supersedes any prior discussions.</p>' +
+        '<p><strong>Electronic signature.</strong> By typing your full legal name below and clicking "Sign &amp; Accept Quote," you agree this constitutes your electronic signature, that you have read and agree to this Agreement and the proposal above, and that this action is legally binding to the same extent as a handwritten signature.</p>' +
+      '</div>';
+    }
+
+    function signAreaHtml(q) {
+      if (q.status === 'accepted') {
+        return '<div class="signed-block">' +
+          '<p class="signed-name">' + escapeHtml(q.signed_name || q.contact_name || q.business_name) + '</p>' +
+          '<p class="signed-meta">Signed and accepted ' + fmtDateTime(q.accepted_at) + '</p>' +
+        '</div>';
       }
+      return '<div class="sign-row">' +
+        '<label class="field-label" for="signName">Type your full legal name to sign</label>' +
+        '<input class="sign-input" id="signName" type="text" placeholder="Jane Smith" autocomplete="name">' +
+        '<label class="sign-check"><input type="checkbox" id="signCheck"> I have read and agree to the Customer Agreement above and the proposal described in this document.</label>' +
+        '<div style="text-align:center; margin-top:18px;"><button class="btn" id="signBtn" disabled>Sign &amp; Accept Quote</button></div>' +
+        '<p class="sign-note" style="text-align:center;">This constitutes your legally binding electronic signature.</p>' +
+        '<p class="empty-note" id="signError" style="display:none; padding:10px 0 0; color:var(--bad); font-size:13.5px;"></p>' +
+      '</div>';
+    }
+
+    function wireSignForm(q, token) {
+      const nameEl = document.getElementById('signName');
+      const checkEl = document.getElementById('signCheck');
+      const signBtn = document.getElementById('signBtn');
+      if (!signBtn) return;
+
+      function refreshEnabled() {
+        signBtn.disabled = !(nameEl.value.trim().length >= 2 && checkEl.checked);
+      }
+      nameEl.addEventListener('input', refreshEnabled);
+      checkEl.addEventListener('change', refreshEnabled);
+
+      signBtn.addEventListener('click', async function () {
+        const name = nameEl.value.trim();
+        const errEl = document.getElementById('signError');
+        errEl.style.display = 'none';
+        signBtn.disabled = true;
+        signBtn.textContent = 'Signing…';
+
+        let data, error;
+        try {
+          ({ data, error } = await sb.functions.invoke('sign-quote', { body: { token: token, name: name } }));
+        } catch (e) {
+          error = e;
+        }
+
+        if (!error && data && data.ok) {
+          document.getElementById('signArea').innerHTML =
+            '<div class="signed-block">' +
+              '<p class="signed-name">' + escapeHtml(data.signed_name || name) + '</p>' +
+              '<p class="signed-meta">Signed and accepted ' + fmtDateTime(data.signed_at || new Date().toISOString()) + '</p>' +
+            '</div>';
+          document.getElementById('actionsRow').insertAdjacentHTML('afterbegin',
+            '<p class="accepted-note" style="width:100%;">Thanks — you signed and accepted this quote. We\'ll be in touch to get started, and you\'ll receive an invoice separately.</p>');
+          // Best-effort notification — .catch (not try/catch) so it actually catches
+          // a rejection from this un-awaited call instead of silently doing nothing.
+          sb.functions.invoke('send-quote-accepted-email', { body: { quote_id: q.id } }).catch(function () {});
+        } else {
+          signBtn.disabled = false;
+          signBtn.textContent = 'Sign & Accept Quote';
+          errEl.textContent = (data && data.error) || 'Something went wrong — try again, or reach out and we\'ll confirm it manually.';
+          errEl.style.display = 'block';
+          refreshEnabled();
+        }
+      });
     }
 
     loadQuote();
