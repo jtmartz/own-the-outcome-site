@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — Own the Outcome</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='100' fill='%23201F1B'/%3E%3Ctext x='100' y='128' font-family='Georgia,serif' font-style='italic' font-weight='500' font-size='82' fill='%23FBF8F2' text-anchor='middle'%3EO%3Ctspan fill='%23DD7A45' font-family='Arial,sans-serif' font-style='normal' font-weight='700' font-size='62'%3Eo%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF8F2;
+    --paper: #FFFFFF;
+    --ink: #201F1B;
+    --ink-soft: #47453E;
+    --muted: #7A776C;
+    --line: #E6E0D2;
+    --rust: #B14A2C;
+    --rust-bright: #E0895A;
+    --dark: #26221C;
+    --dark-2: #2F2A22;
+    --cream-d: #F3EEE2;
+    --text-d: #B7B1A1;
+    --line-d: #453F32;
+    --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    color: var(--ink-soft);
+    line-height: 1.65;
+    background: var(--cream);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--rust); }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 32px; }
+  .wrap.narrow { max-width: 760px; }
+  .eyebrow {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin: 0 0 16px;
+  }
+
+  /* ---------- header ---------- */
+  header.site { background: var(--paper); border-bottom: 1px solid var(--line); }
+  .header-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 32px; max-width: 1120px; margin: 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; text-decoration: none; }
+  .brand .mark { width: 50px; height: 50px; flex: none; }
+  .brand .wordmark {
+    font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 26px;
+    color: var(--ink); letter-spacing: 0.01em;
+  }
+  .nav-group { display: flex; align-items: center; gap: 28px; }
+  nav.site { display: flex; gap: 36px; }
+  nav.site a {
+    text-decoration: none; font-size: 14px; color: var(--ink-soft); font-weight: 500;
+    border-bottom: 1px solid transparent; padding-bottom: 2px;
+    transition: border-color .15s ease, color .15s ease;
+  }
+  nav.site a:hover { color: var(--rust); border-color: var(--rust); }
+  .portal-btn { padding: 10px 20px; font-size: 13px; }
+
+  .hamburger {
+    display: none; position: relative;
+    width: 26px; height: 32px; background: none; border: none; cursor: pointer; padding: 0;
+  }
+  .hamburger span {
+    position: absolute; left: 0; width: 100%; height: 2px; background: var(--ink);
+    transition: top .2s ease, transform .2s ease, opacity .2s ease;
+    transform-origin: center;
+  }
+  .hamburger span:nth-child(1) { top: 11px; }
+  .hamburger span:nth-child(2) { top: 15px; }
+  .hamburger span:nth-child(3) { top: 19px; }
+  .hamburger.active span:nth-child(1) { top: 15px; transform: rotate(45deg); }
+  .hamburger.active span:nth-child(2) { opacity: 0; }
+  .hamburger.active span:nth-child(3) { top: 15px; transform: rotate(-45deg); }
+
+  .mobile-menu {
+    display: none; flex-direction: column;
+    padding: 8px 32px 20px; border-top: 1px solid var(--line); background: var(--paper);
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a {
+    text-decoration: none; color: var(--ink-soft); font-size: 15px; font-weight: 500;
+    padding: 14px 0; border-bottom: 1px solid var(--line);
+  }
+  .mobile-menu .portal-btn { margin-top: 16px; text-align: center; border-bottom: none; }
+
+  .btn.ghost {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: transparent; color: var(--ink); border: 1px solid var(--line);
+    padding: 10px 20px; border-radius: 3px; text-decoration: none; font-weight: 600;
+    font-size: 13px; font-family: var(--sans); transition: border-color .15s ease;
+  }
+  .btn.ghost:hover { border-color: var(--ink); }
+
+  /* ---------- legal content ---------- */
+  .page-head { padding: 56px 32px 8px; }
+  .page-head h1 {
+    font-family: var(--serif); font-weight: 500; font-size: clamp(30px, 4vw, 40px);
+    color: var(--ink); margin: 0 0 10px; letter-spacing: -0.01em;
+  }
+  .page-head p.updated { color: var(--muted); margin: 0; font-size: 14px; }
+
+  .legal-body { padding: 24px 32px 90px; }
+  .legal-body h2 {
+    font-family: var(--serif); font-weight: 600; font-size: 21px; color: var(--ink);
+    margin: 40px 0 12px;
+  }
+  .legal-body h2:first-child { margin-top: 0; }
+  .legal-body p { font-size: 15px; margin: 0 0 14px; }
+  .legal-body ul { margin: 0 0 14px; padding-left: 22px; }
+  .legal-body li { font-size: 15px; margin-bottom: 8px; }
+  .legal-body strong { color: var(--ink); }
+
+  .bottom-bar {
+    text-align: center; padding: 24px 24px; font-size: 12.5px; letter-spacing: 0.04em;
+    color: var(--text-d); background: var(--dark); border-top: 1px solid var(--line-d);
+  }
+  .bottom-bar a { color: var(--text-d); text-decoration: none; }
+  .bottom-bar a:hover { color: var(--cream); }
+
+  @media (max-width: 860px) {
+    nav.site { display: none; }
+    .nav-group .portal-btn { display: none; }
+    .hamburger { display: flex; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="site">
+    <div class="header-inner">
+      <a class="brand" href="index.html">
+        <svg class="mark" viewBox="0 0 200 200" aria-hidden="true">
+          <circle cx="100" cy="100" r="94" fill="#14130F"/>
+          <circle cx="100" cy="100" r="95" fill="none" stroke="#FBF8F2" stroke-width="6" opacity="0.9"/>
+          <text x="100" y="138" font-family="Fraunces" font-style="italic" font-weight="500" font-size="114" fill="#FBF8F2" text-anchor="middle">O<tspan fill="#DD7A45" font-family="Inter" font-style="normal" font-weight="700" font-size="86">o</tspan></text>
+        </svg>
+        <div class="wordmark">Own the Outcome</div>
+      </a>
+      <div class="nav-group">
+        <nav class="site">
+          <a href="index.html#how">How it works</a>
+          <a href="index.html#services">Services</a>
+          <a href="index.html#contact">Contact</a>
+        </nav>
+        <a class="btn ghost portal-btn" href="customer-portal.html">Client Portal</a>
+        <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="index.html#how">How it works</a>
+      <a href="index.html#services">Services</a>
+      <a href="index.html#contact">Contact</a>
+      <a class="btn ghost portal-btn" href="customer-portal.html">Client Portal</a>
+    </div>
+  </header>
+
+  <div class="wrap narrow">
+    <div class="page-head">
+      <p class="eyebrow">Legal</p>
+      <h1>Privacy Policy</h1>
+      <p class="updated">Last updated: August 26, 2026</p>
+    </div>
+
+    <div class="legal-body">
+      <h2>1. What this covers</h2>
+      <p>This policy explains what information Own the Outcome collects through our website and client portal, how it's used, and how it's protected. It applies to visitors booking a consultation, submitting a request, and clients using the portal.</p>
+
+      <h2>2. Information we collect</h2>
+      <p>Depending on how you interact with the site, we collect:</p>
+      <ul>
+        <li><strong>Contact and business details</strong> you submit through forms — name, business name, email, phone, website, and a description of your business and what you need.</li>
+        <li><strong>Account information</strong> if you become a client — your login email and an encrypted password, managed securely through our authentication provider (we never see or store your password in plain text).</li>
+        <li><strong>Service and request history</strong> — consultations booked, service requests, messages, referrals, and notes tied to your account, so we can track and follow up on your work.</li>
+        <li><strong>Payment information</strong> — we do not collect or store your card details ourselves. Payments are processed by Stripe, and Stripe's own privacy policy governs how they handle that data.</li>
+      </ul>
+
+      <h2>3. How we use your information</h2>
+      <p>We use the information above to schedule and deliver consultations, scope and build the tools you request, communicate with you about your account and services, and improve how we run the business. We don't sell your information to third parties.</p>
+
+      <h2>4. Who we share it with</h2>
+      <p>We use a small number of trusted service providers to run this site and business:</p>
+      <ul>
+        <li><strong>Supabase</strong> — hosts our database and handles account login/authentication.</li>
+        <li><strong>Stripe</strong> — processes payments; we don't see or store your full card details.</li>
+        <li><strong>Netlify</strong> — hosts the website itself.</li>
+        <li><strong>Resend</strong> (or our email provider) — sends account and booking-related emails on our behalf.</li>
+      </ul>
+      <p>These providers only receive what they need to perform their specific function and are not permitted to use your data for their own marketing.</p>
+
+      <h2>5. Cookies and tracking</h2>
+      <p>[Fill in if/when you add analytics or ad-tracking pixels — e.g., Google Analytics, Meta Pixel — describe what's tracked and link to an opt-out where applicable. As of this writing, the site does not use third-party advertising trackers.]</p>
+
+      <h2>6. Data retention</h2>
+      <p>We keep your information for as long as you're an active client, and for a reasonable period afterward for business records and legal purposes. You can ask us to delete your account and associated data at any time, subject to what we're required to retain by law.</p>
+
+      <h2>7. Your rights</h2>
+      <p>You can ask us to access, correct, or delete the personal information we hold about you at any time by contacting us using the information below.</p>
+
+      <h2>8. Security</h2>
+      <p>We use industry-standard practices — including encrypted connections and access controls on our database — to protect your information. No system is perfectly secure, but we take reasonable steps to keep your data safe.</p>
+
+      <h2>9. Changes to this policy</h2>
+      <p>We may update this policy as the business grows. If we make a material change, we'll update the "last updated" date above.</p>
+
+      <h2>10. Contact</h2>
+      <p>Questions about this policy or your data? Reach us at <strong>[business email]</strong> or <strong>[business phone]</strong>.</p>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    OWN THE OUTCOME &nbsp;&middot;&nbsp; <a href="terms.html">Terms</a> &nbsp;&middot;&nbsp; <a href="privacy.html">Privacy</a>
+  </div>
+
+  <script>
+    var hamburger = document.getElementById('hamburger');
+    var mobileMenu = document.getElementById('mobileMenu');
+    hamburger.addEventListener('click', function () {
+      var isOpen = mobileMenu.classList.toggle('open');
+      hamburger.classList.toggle('active', isOpen);
+      hamburger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  </script>
+
+</body>
+</html>

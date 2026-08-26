@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terms of Service — Own the Outcome</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='100' fill='%23201F1B'/%3E%3Ctext x='100' y='128' font-family='Georgia,serif' font-style='italic' font-weight='500' font-size='82' fill='%23FBF8F2' text-anchor='middle'%3EO%3Ctspan fill='%23DD7A45' font-family='Arial,sans-serif' font-style='normal' font-weight='700' font-size='62'%3Eo%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF8F2;
+    --paper: #FFFFFF;
+    --ink: #201F1B;
+    --ink-soft: #47453E;
+    --muted: #7A776C;
+    --line: #E6E0D2;
+    --rust: #B14A2C;
+    --rust-bright: #E0895A;
+    --dark: #26221C;
+    --dark-2: #2F2A22;
+    --cream-d: #F3EEE2;
+    --text-d: #B7B1A1;
+    --line-d: #453F32;
+    --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    color: var(--ink-soft);
+    line-height: 1.65;
+    background: var(--cream);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--rust); }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 32px; }
+  .wrap.narrow { max-width: 760px; }
+  .eyebrow {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin: 0 0 16px;
+  }
+
+  /* ---------- header ---------- */
+  header.site { background: var(--paper); border-bottom: 1px solid var(--line); }
+  .header-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 32px; max-width: 1120px; margin: 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; text-decoration: none; }
+  .brand .mark { width: 50px; height: 50px; flex: none; }
+  .brand .wordmark {
+    font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 26px;
+    color: var(--ink); letter-spacing: 0.01em;
+  }
+  .nav-group { display: flex; align-items: center; gap: 28px; }
+  nav.site { display: flex; gap: 36px; }
+  nav.site a {
+    text-decoration: none; font-size: 14px; color: var(--ink-soft); font-weight: 500;
+    border-bottom: 1px solid transparent; padding-bottom: 2px;
+    transition: border-color .15s ease, color .15s ease;
+  }
+  nav.site a:hover { color: var(--rust); border-color: var(--rust); }
+  .portal-btn { padding: 10px 20px; font-size: 13px; }
+
+  .hamburger {
+    display: none; position: relative;
+    width: 26px; height: 32px; background: none; border: none; cursor: pointer; padding: 0;
+  }
+  .hamburger span {
+    position: absolute; left: 0; width: 100%; height: 2px; background: var(--ink);
+    transition: top .2s ease, transform .2s ease, opacity .2s ease;
+    transform-origin: center;
+  }
+  .hamburger span:nth-child(1) { top: 11px; }
+  .hamburger span:nth-child(2) { top: 15px; }
+  .hamburger span:nth-child(3) { top: 19px; }
+  .hamburger.active span:nth-child(1) { top: 15px; transform: rotate(45deg); }
+  .hamburger.active span:nth-child(2) { opacity: 0; }
+  .hamburger.active span:nth-child(3) { top: 15px; transform: rotate(-45deg); }
+
+  .mobile-menu {
+    display: none; flex-direction: column;
+    padding: 8px 32px 20px; border-top: 1px solid var(--line); background: var(--paper);
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a {
+    text-decoration: none; color: var(--ink-soft); font-size: 15px; font-weight: 500;
+    padding: 14px 0; border-bottom: 1px solid var(--line);
+  }
+  .mobile-menu .portal-btn { margin-top: 16px; text-align: center; border-bottom: none; }
+
+  .btn.ghost {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: transparent; color: var(--ink); border: 1px solid var(--line);
+    padding: 10px 20px; border-radius: 3px; text-decoration: none; font-weight: 600;
+    font-size: 13px; font-family: var(--sans); transition: border-color .15s ease;
+  }
+  .btn.ghost:hover { border-color: var(--ink); }
+
+  /* ---------- legal content ---------- */
+  .page-head { padding: 56px 32px 8px; }
+  .page-head h1 {
+    font-family: var(--serif); font-weight: 500; font-size: clamp(30px, 4vw, 40px);
+    color: var(--ink); margin: 0 0 10px; letter-spacing: -0.01em;
+  }
+  .page-head p.updated { color: var(--muted); margin: 0; font-size: 14px; }
+
+  .legal-body { padding: 24px 32px 90px; }
+  .legal-body h2 {
+    font-family: var(--serif); font-weight: 600; font-size: 21px; color: var(--ink);
+    margin: 40px 0 12px;
+  }
+  .legal-body h2:first-child { margin-top: 0; }
+  .legal-body p { font-size: 15px; margin: 0 0 14px; }
+  .legal-body ul { margin: 0 0 14px; padding-left: 22px; }
+  .legal-body li { font-size: 15px; margin-bottom: 8px; }
+  .legal-body strong { color: var(--ink); }
+
+  .bottom-bar {
+    text-align: center; padding: 24px 24px; font-size: 12.5px; letter-spacing: 0.04em;
+    color: var(--text-d); background: var(--dark); border-top: 1px solid var(--line-d);
+  }
+  .bottom-bar a { color: var(--text-d); text-decoration: none; }
+  .bottom-bar a:hover { color: var(--cream); }
+
+  @media (max-width: 860px) {
+    nav.site { display: none; }
+    .nav-group .portal-btn { display: none; }
+    .hamburger { display: flex; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="site">
+    <div class="header-inner">
+      <a class="brand" href="index.html">
+        <svg class="mark" viewBox="0 0 200 200" aria-hidden="true">
+          <circle cx="100" cy="100" r="94" fill="#14130F"/>
+          <circle cx="100" cy="100" r="95" fill="none" stroke="#FBF8F2" stroke-width="6" opacity="0.9"/>
+          <text x="100" y="138" font-family="Fraunces" font-style="italic" font-weight="500" font-size="114" fill="#FBF8F2" text-anchor="middle">O<tspan fill="#DD7A45" font-family="Inter" font-style="normal" font-weight="700" font-size="86">o</tspan></text>
+        </svg>
+        <div class="wordmark">Own the Outcome</div>
+      </a>
+      <div class="nav-group">
+        <nav class="site">
+          <a href="index.html#how">How it works</a>
+          <a href="index.html#services">Services</a>
+          <a href="index.html#contact">Contact</a>
+        </nav>
+        <a class="btn ghost portal-btn" href="customer-portal.html">Client Portal</a>
+        <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="index.html#how">How it works</a>
+      <a href="index.html#services">Services</a>
+      <a href="index.html#contact">Contact</a>
+      <a class="btn ghost portal-btn" href="customer-portal.html">Client Portal</a>
+    </div>
+  </header>
+
+  <div class="wrap narrow">
+    <div class="page-head">
+      <p class="eyebrow">Legal</p>
+      <h1>Terms of Service</h1>
+      <p class="updated">Last updated: August 26, 2026</p>
+    </div>
+
+    <div class="legal-body">
+      <h2>1. Who this applies to</h2>
+      <p>These terms cover your use of the Own the Outcome website, client portal, and the services we provide: paid consultations, custom AI tool builds, and the ongoing Care Plan support subscription. By booking a consultation, submitting a request, or using the client portal, you agree to these terms.</p>
+
+      <h2>2. What we do</h2>
+      <p>Own the Outcome designs and builds custom software tools for small and local businesses — things like missed-call text-back systems, automated reminders, and quoting tools. We start with a paid consultation to assess your business, then quote and build a tool specific to what you need. Optional ongoing support and updates are available through a Care Plan subscription.</p>
+
+      <h2>3. Consultations and payment</h2>
+      <p>The initial consultation carries a one-time fee, shown at the time of booking. Custom tool builds are quoted individually based on scope and are billed separately from the consultation fee. Care Plan subscriptions, where active, renew automatically on a monthly basis until cancelled. Prices are shown to you before you're charged, and we do not charge for anything without your agreement to that specific cost.</p>
+
+      <h2>4. Cancellations and refunds</h2>
+      <p>You may cancel a scheduled consultation or a Care Plan subscription at any time by contacting us. [Add your specific refund policy here — e.g., whether the consultation fee is refundable if cancelled with notice, and how mid-cycle Care Plan cancellations are handled.]</p>
+
+      <h2>5. Ownership of what we build</h2>
+      <p>Unless otherwise agreed in writing for a specific project, tools we build for you become yours once paid in full — this isn't a subscription you rent back from us. The Care Plan is optional ongoing support and priority service on top of a tool you already own, not a requirement to keep using it.</p>
+
+      <h2>6. The client portal</h2>
+      <p>If you become a client, you'll get access to a private portal to track your tools, submit requests, and manage your account. You're responsible for keeping your login credentials secure. Let us know right away if you believe your account has been accessed without your permission.</p>
+
+      <h2>7. No guarantees of specific business outcomes</h2>
+      <p>We build tools intended to solve real problems in your business, and we take that seriously — but we can't guarantee specific results (like a set increase in revenue or booked jobs), since outcomes depend on factors outside our control.</p>
+
+      <h2>8. Limitation of liability</h2>
+      <p>To the extent allowed by law, Own the Outcome isn't liable for indirect, incidental, or consequential damages arising from use of our tools or services. Our total liability for any claim is limited to the amount you paid us for the specific service giving rise to the claim.</p>
+
+      <h2>9. Changes to these terms</h2>
+      <p>We may update these terms as the business grows. If we make a material change, we'll update the "last updated" date above. Continued use of our services after a change means you accept the updated terms.</p>
+
+      <h2>10. Governing law</h2>
+      <p>These terms are governed by the laws of the State of [Your State], without regard to conflict-of-law principles.</p>
+
+      <h2>11. Contact</h2>
+      <p>Questions about these terms? Reach us at <strong>[business email]</strong> or <strong>[business phone]</strong>.</p>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    OWN THE OUTCOME &nbsp;&middot;&nbsp; <a href="terms.html">Terms</a> &nbsp;&middot;&nbsp; <a href="privacy.html">Privacy</a>
+  </div>
+
+  <script>
+    var hamburger = document.getElementById('hamburger');
+    var mobileMenu = document.getElementById('mobileMenu');
+    hamburger.addEventListener('click', function () {
+      var isOpen = mobileMenu.classList.toggle('open');
+      hamburger.classList.toggle('active', isOpen);
+      hamburger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  </script>
+
+</body>
+</html>
